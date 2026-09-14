@@ -477,7 +477,7 @@
         html+='<td>'+(b.kenderaan&&b.kenderaan!=='-'?escapeHtml(b.kenderaan):'<span style="color:var(--ink-dim);">-</span>')+'</td>';
         html+='<td><span class="badge badge-'+b.status+'">'+escapeHtml(b.status)+'</span></td>';
         html+='<td>'+escapeHtml(b.catatanAdmin)+'</td>';
-        html+='<td><a class="btn btn-ghost btn-sm" href="'+API_URL+'?page=print&id='+encodeURIComponent(b.id)+'">Cetak</a></td>';
+        html+='<td><a class="btn btn-ghost btn-sm" href="print.html?id='+encodeURIComponent(b.id)+'">Cetak</a></td>';
         if(b.status==='Menunggu'||b.status==='Diluluskan'){
           html+='<td><button class="btn btn-danger btn-sm cancel-btn" data-id="'+escapeHtml(b.id)+'">Batalkan</button></td>';
         } else {
