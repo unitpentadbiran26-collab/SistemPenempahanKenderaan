@@ -131,7 +131,7 @@
 
       root.innerHTML = `
         <div class="toolbar">
-          <button class="btn" onclick="window.print()">🖨️ Cetak / Muat Turun</button>
+          <button class="btn" onclick="if(window.AndroidPrint){window.AndroidPrint.print();}else{window.print();}">🖨️ Cetak / Muat Turun</button>
         </div>
 
         <div class="form-sheet">
