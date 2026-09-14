@@ -219,14 +219,14 @@
        url.searchParams.set('action',action);
        if (data) {
          Object.keys(data).forEach(k => {
-           if (data[k] !== undefined &7 data[k] !== null) {
+           if (data[k] !== undefined && data[k] !== null) {
              url.searchParams.set(k, data[k]);
            }
          });
        }
       const res = await fetch(url.toSring());
       const json = await res.json();
-      if (!json.success) throw new Error (json.error || 'Ralat tidak diketahu');
+      if (!json.success) throw new Error (json.error || 'Ralat tidak diketahui');
       return json.data;
     }
 
