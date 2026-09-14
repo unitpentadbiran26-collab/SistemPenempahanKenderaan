@@ -240,7 +240,7 @@
     }
     async function apiPost(action, data) {
      const url = new URL(API_URL);
-      url.searchParams.set('action',acion);
+      url.searchParams.set('action',action);
       if (data) {
         Object.keys(data).forEach(k => {
           if (data[k] !== undefined && data[k] !== null) {
