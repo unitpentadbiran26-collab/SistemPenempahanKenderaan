@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cetak Borang Tempahan Pemandu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box;}
+    html,body{margin:0;padding:0;}
+    body{
+      background:#eef0f5;color:#161629;
+      font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;
+      font-size:14.5px;line-height:1.5;-webkit-font-smoothing:antialiased;
+    }
+    h1{font-family:'Space Grotesk',sans-serif;}
+    .print-wrap{max-width:820px;margin:0 auto;padding:24px 16px 60px;}
+    .toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;}
+    .btn{
+      border:1px solid #D4A843;background:#D4A843;color:#161629;
+      padding:9px 16px;border-radius:8px;font-size:13.5px;font-weight:700;
+      cursor:pointer;
+    }
+    .form-sheet{
+      background:#fff;border:1px solid #d8dbe6;border-radius:10px;
+      box-shadow:0 1px 2px rgba(13,20,38,.05),0 6px 18px rgba(13,20,38,.07);
+      padding:34px 38px;
+    }
+    .form-title{text-align:center;margin-bottom:4px;}
+    .form-logo{display:flex;justify-content:center;margin-bottom:10px;}
+    .form-logo img{width:50px;height:50px;object-fit:contain;}
+    .form-title h1{font-size:17px;letter-spacing:.01em;margin:0;}
+    .form-sub{text-align:center;font-size:12.5px;color:#000;margin-bottom:22px;}
+    .status-line{text-align:center;margin-bottom:18px;}
+    .status-pill{
+      display:inline-block;font-size:12px;font-weight:700;letter-spacing:.03em;
+      text-transform:uppercase;padding:5px 14px;border-radius:100px;
+    }
+    .status-pending{background:#FCEFD9;color:#8a5a14;}
+    .status-approved{background:#d9f5e8;color:#0c8c63;}
+    .status-rejected{background:#FEE2E2;color:#ef4444;}
+    .status-cancelled{background:#e5e7eb;color:#4b5563;}
+    .ref-no{text-align:center;font-size:12px;color:#000;margin-bottom:22px;}
+    .p-section{margin-bottom:18px;}
+    .p-section-title{
+      font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+      color:#000;border-bottom:1px solid #d8dbe6;padding-bottom:6px;margin-bottom:10px;
+    }
+    .p-row{display:flex;gap:18px;margin-bottom:10px;flex-wrap:wrap;}
+    .p-field{flex:1;min-width:180px;}
+    .p-label{font-size:11px;color:#000;text-transform:uppercase;letter-spacing:.02em;margin-bottom:2px;}
+    .p-value{font-size:14px;color:#000;font-weight:600;border:1.5px solid #000;border-radius:5px;padding:6px 10px;min-height:20px;}
+    .check-list{display:flex;flex-wrap:wrap;gap:14px 22px;margin-top:2px;}
+    .check-item{display:flex;align-items:center;gap:8px;font-size:13.5px;}
+    .box{
+      width:15px;height:15px;border:1.5px solid #000;border-radius:3px;
+      display:inline-flex;align-items:center;justify-content:center;font-size:11px;
+      flex-shrink:0;
+    }
+    .box.on{background:#000;color:#fff;}
+    .dot-line{font-size:14px;letter-spacing:2px;color:#000;margin-bottom:6px;white-space:nowrap;overflow:hidden;}
+    .sign-label{font-size:12px;color:#000;}
+    .admin-box{margin-top:26px;border:1px dashed #b7bccb;border-radius:8px;padding:16px 18px;}
+    .admin-box .p-section-title{border-bottom:none;padding-bottom:0;margin-bottom:12px;}
+    .catatan-box{min-height:70px;}
+    .not-found{text-align:center;padding:60px 20px;}
+    .not-found h2{font-size:18px;margin-bottom:8px;}
+    .not-found p{color:#000;}
+    .loading{text-align:center;padding:60px 20px;color:#666;}
+
+    @media print{
+      body{background:#fff;}
+      .toolbar{display:none;}
+      .print-wrap{padding:0;max-width:100%;}
+      .form-sheet{box-shadow:none;border:none;padding:0;}
+    }
+  </style>
+</head>
+<body>
+  <div class="print-wrap" id="root">
+    <div class="loading">Memuatkan borang...</div>
+  </div>
+
+  <script>
+    // ====================== KONFIGURASI - WAJIB TUKAR ======================
+    const API_URL = 'GANTI_DENGAN_URL_GAS_KORANG';
+    // =========================================================================
+
+    function escapeHtml(s) {
+      return String(s || '').replace(/[&<>"']/g, function(c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
+    }
+
+    function getParam(name) {
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name) || '';
+    }
+
+    async function loadPrintView() {
+      const id = getParam('id');
+      const root = document.getElementById('root');
+      if (!id) {
+        root.innerHTML = '<div class="form-sheet not-found"><h2>ID Tidak Sah</h2><p>Tiada rujukan tempahan diberikan.</p></div>';
+        return;
+      }
+      try {
+        const url = new URL(API_URL);
+        url.searchParams.set('action', 'getPrintView');
+        url.searchParams.set('id', id);
+        const res = await fetch(url.toString());
+        const json = await res.json();
+        if (!json.success) throw new Error(json.error || 'Ralat tidak diketahui');
+        render(json.data);
+      } catch (err) {
+        root.innerHTML = '<div class="form-sheet not-found"><h2>Ralat</h2><p>' + escapeHtml(err.message) + '</p></div>';
+      }
+    }
+
+    function render(view) {
+      const root = document.getElementById('root');
+      if (!view || !view.found) {
+        root.innerHTML = '<div class="form-sheet not-found"><h2>Borang Tidak Dijumpai</h2><p>Rujukan tempahan ini tidak sah atau telah dipadam.</p></div>';
+        return;
+      }
+
+      const kenderaan = (view.kenderaan && view.kenderaan !== '-') ? view.kenderaan : '';
+      const pemandu = (view.pemandu && view.pemandu !== '-') ? view.pemandu : '';
+      const catatan = (view.catatanAdmin && view.catatanAdmin !== '-') ? view.catatanAdmin : '&nbsp;';
+
+      root.innerHTML = `
+        <div class="toolbar">
+          <button class="btn" onclick="window.print()">🖨️ Cetak / Muat Turun</button>
+        </div>
+
+        <div class="form-sheet">
+          <div class="form-title">
+            <div class="form-logo"><img src="logo.png"></div>
+            <h1>BORANG TEMPAHAN PEMANDU &amp; KENDERAAN</h1>
+          </div>
+          <div class="form-sub">Sistem Penempahan Kenderaan</div>
+
+          <div class="status-line">
+            <span class="status-pill ${view.statusClass}">${escapeHtml(view.statusLabel)}</span>
+          </div>
+          <div class="ref-no">No. Rujukan: ${escapeHtml(view.id)}</div>
+
+          <div class="p-section">
+            <div class="p-section-title">Tarikh &amp; Masa Perjalanan</div>
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Tarikh Mula</div>
+                <div class="p-value">${escapeHtml(view.tarikhMula)} (${escapeHtml(view.hariMula)})</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Tarikh Dikembalikan</div>
+                <div class="p-value">${escapeHtml(view.tarikhKembali)} (${escapeHtml(view.hariKembali)})</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Masa Mula</div>
+                <div class="p-value">${escapeHtml(view.masaMula)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-section">
+            <div class="p-section-title">Maklumat Perjalanan</div>
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Destinasi</div>
+                <div class="p-value">${escapeHtml(view.destinasi)}</div>
+              </div>
+            </div>
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Tujuan Perjalanan</div>
+                <div class="p-value">${escapeHtml(view.tujuan)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-section">
+            <div class="p-section-title">Maklumat Pemohon</div>
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Nama</div>
+                <div class="p-value">${escapeHtml(view.nama)}</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Bahagian</div>
+                <div class="p-value">${escapeHtml(view.bahagian)}</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Unit</div>
+                <div class="p-value">${escapeHtml(view.unit)}</div>
+              </div>
+            </div>
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Emel</div>
+                <div class="p-value">${escapeHtml(view.emel)}</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Tarikh Permohonan</div>
+                <div class="p-value">${escapeHtml(view.tarikhMohon)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-row" style="margin-top:24px;">
+            <div class="p-field">
+              <div class="dot-line">.......................................</div>
+              <div class="sign-label">Tandatangan Pemohon</div>
+            </div>
+          </div>
+
+          <div class="admin-box">
+            <div class="p-section-title">Untuk Kegunaan Unit Pentadbiran</div>
+
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Permohonan</div>
+                <div class="check-list">
+                  <span class="check-item">
+                    <span class="box ${view.isDiluluskan ? 'on' : ''}">${view.isDiluluskan ? '✓' : ''}</span>
+                    Diluluskan
+                  </span>
+                  <span class="check-item">
+                    <span class="box ${view.isDitolak ? 'on' : ''}">${view.isDitolak ? '✓' : ''}</span>
+                    Tidak Diluluskan
+                  </span>
+                  <span class="check-item">
+                    <span class="box ${view.isDibatalkan ? 'on' : ''}">${view.isDibatalkan ? '✓' : ''}</span>
+                    Dibatalkan
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">No. Kenderaan</div>
+                <div class="p-value">${escapeHtml(kenderaan)}</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Nama Pemandu</div>
+                <div class="p-value">${escapeHtml(pemandu)}</div>
+              </div>
+            </div>
+
+            <div class="p-row">
+              <div class="p-field">
+                <div class="p-label">Nota / Catatan</div>
+                <div class="p-value catatan-box">${catatan === '&nbsp;' ? catatan : escapeHtml(catatan)}</div>
+              </div>
+            </div>
+
+            <div class="p-row" style="margin-top:20px;">
+              <div class="p-field">
+                <div class="dot-line">.......................................</div>
+                <div class="sign-label">Tandatangan<br>Penolong Pengurus Besar (KP) / Pegawai Tadbir (Unit Pentadbiran)</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    loadPrintView();
+  </script>
+</body>
+</html>
