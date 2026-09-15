@@ -118,10 +118,23 @@
   .toast.error{background:rgba(224,92,92,0.15);border-color:var(--coral);color:var(--coral);}
   .hamburger-btn{display:none;background:none;border:none;color:var(--ink);padding:6px;cursor:pointer;border-radius:7px;align-items:center;justify-content:center;}
   .hamburger-btn:hover{background:var(--mist);}
+  .mobile-driver-cards{display:none;flex-direction:column;gap:10px;}
+  .pending-strip{display:none;flex-direction:column;gap:6px;margin-bottom:14px;}
+  .pending-chip{display:flex;align-items:center;gap:8px;background:rgba(212,168,67,0.1);border:1px solid rgba(212,168,67,0.3);border-radius:9px;padding:9px 12px;font-size:12.5px;color:var(--ink);}
+  .pending-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+  .pending-chip b{color:var(--gold);}
+  .driver-mcard{background:var(--paper-2);border:1px solid var(--mist);border-radius:10px;padding:14px 16px;}
+  .driver-mcard-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .driver-mcard-name{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .driver-mcard-trip{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--mist);font-size:12.5px;color:var(--ink-dim);}
+  .driver-mcard-trip b{color:var(--gold-light);font-weight:600;}
   .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:149;}
   .sidebar-backdrop.open{display:block;}
   @media(max-width:768px){
     .hamburger-btn{display:flex;}
+    .timeline-scroll,.ruler,.timeline-hint{display:none !important;}
+    .mobile-driver-cards{display:flex;}
+    .pending-strip{display:flex;}
     .sidebar{display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;z-index:150;box-shadow:0 0 30px rgba(0,0,0,.5);width:250px;}
     .sidebar.open{transform:translateX(0);}
     .topbar-nav{display:none;}
@@ -229,8 +242,10 @@
           <span><i class="dot-diluluskan"></i> Sedang Bertugas</span>
         </div>
         <div class="card" style="padding:20px;">
+          <div class="pending-strip" id="pendingStrip"></div>
           <div class="timeline-scroll"><div class="timeline-grid"><div class="ruler" id="ruler"></div><div id="drivers"></div></div></div>
-          <p style="font-size:12px;color:var(--ink-dim);margin-top:14px;">Klik pada garis masa atau butang "Mohon Pemandu" untuk hantar permohonan.</p>
+          <div class="mobile-driver-cards" id="mobileDriverCards"></div>
+          <p class="timeline-hint" style="font-size:12px;color:var(--ink-dim);margin-top:14px;">Klik pada garis masa atau butang "Mohon Pemandu" untuk hantar permohonan.</p>
         </div>
       </div>
 
@@ -447,6 +462,41 @@
 
       document.getElementById('statAvail').textContent = DRIVERS.length - busy;
       document.getElementById('statBusy').textContent = busy;
+
+      renderMobileDriverCards();
+      renderPendingStrip();
+    }
+
+    function renderPendingStrip(){
+      var el = document.getElementById('pendingStrip');
+      var pending = bookingsCache.filter(function(b){ return b.status === 'Menunggu'; });
+      if (!pending.length){ el.innerHTML = ''; return; }
+      var html = pending.map(function(b){
+        return '<div class="pending-chip"><span class="dot"></span><b>' + b.nama + '</b>&nbsp;menunggu kelulusan &middot; ' + (b.masaMula||'') + ' &middot; ' + (b.destinasi||'') + '</div>';
+      }).join('');
+      el.innerHTML = html;
+    }
+
+    function renderMobileDriverCards(){
+      var el = document.getElementById('mobileDriverCards');
+      var html = '';
+      DRIVERS.forEach(function(driver){
+        var trip = bookingsCache.find(function(b){
+          return b.pemandu === driver && b.status === 'Diluluskan';
+        });
+        var available = !trip;
+        html += '<div class="driver-mcard">';
+        html += '<div class="driver-mcard-top">';
+        html += '<div class="driver-mcard-name">' + driver + '</div>';
+        html += '<span class="driver-badge ' + (available ? 'badge-available' : 'badge-unavailable') + '">' +
+                (available ? '&#9679; Available' : '&#9679; Tidak Available') + '</span>';
+        html += '</div>';
+        if (trip){
+          html += '<div class="driver-mcard-trip">&#128663;&nbsp;<b>' + trip.destinasi + '</b>&nbsp;&middot;&nbsp;' + (trip.masaMula||'') + '</div>';
+        }
+        html += '</div>';
+      });
+      el.innerHTML = html;
     }
 
     async function loadDate(dateStr){
