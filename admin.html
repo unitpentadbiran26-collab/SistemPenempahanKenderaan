@@ -114,6 +114,14 @@
   .hist-card-note{font-size:12px;color:var(--ink);margin-top:9px;background:var(--mist-2);padding:7px 10px;border-radius:7px;border:1px solid var(--mist);}
   .hist-card-actions{display:flex;gap:8px;margin-top:12px;}
   .hist-card-actions .btn{flex:1;text-align:center;}
+  .pagination-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-top:16px;padding:4px 2px;}
+  .pagination-info{font-size:12px;color:var(--ink-dim);}
+  .pagination-controls{display:flex;align-items:center;gap:10px;}
+  .pagination-pages{font-size:12.5px;font-weight:700;color:var(--ink);min-width:70px;text-align:center;}
+  @media(max-width:480px){
+    .pagination-bar{flex-direction:column;align-items:stretch;}
+    .pagination-controls{justify-content:space-between;}
+  }
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--paper-2);color:var(--ink);padding:12px 22px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid var(--mist);opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:300;max-width:90vw;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.error{background:rgba(224,92,92,0.15);border-color:var(--coral);color:var(--coral);}
@@ -245,6 +253,14 @@
             </table>
           </div>
           <div class="history-cards" id="historyCards"></div>
+          <div class="pagination-bar" id="paginationBar" style="display:none;">
+            <div class="pagination-info" id="paginationInfo"></div>
+            <div class="pagination-controls">
+              <button class="btn btn-ghost btn-sm" id="pagePrev">&larr; Sebelum</button>
+              <span class="pagination-pages" id="paginationPages"></span>
+              <button class="btn btn-ghost btn-sm" id="pageNext">Seterus &rarr;</button>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -260,6 +276,8 @@
 
     var allBookings = [];
     var ADMIN_PIN_VALUE = '';
+    var historyPage = 1;
+    var HISTORY_PAGE_SIZE = 10;
 
     async function apiGet(action, params) {
       const url = new URL(API_URL);
@@ -616,16 +634,32 @@
     function renderHistory(){
       var pemandu=document.getElementById('filterPemandu').value;
       var status=document.getElementById('filterStatus').value;
-      var rows=[];
+      var allRows=[];
       for(var i=0;i<allBookings.length;i++){
         var b=allBookings[i];
-        if((!pemandu||b.pemandu===pemandu)&&(!status||b.status===status)) rows.push(b);
+        if((!pemandu||b.pemandu===pemandu)&&(!status||b.status===status)) allRows.push(b);
       }
       var tbody=document.getElementById('historyBody');
-      if(!rows.length){
+      var pagBar=document.getElementById('paginationBar');
+      if(!allRows.length){
         tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--ink-dim);padding:28px;">Tiada rekod.</td></tr>';
+        document.getElementById('historyCards').innerHTML='<div class="empty-state">Tiada rekod.</div>';
+        pagBar.style.display='none';
         return;
       }
+
+      var totalPages=Math.max(1,Math.ceil(allRows.length/HISTORY_PAGE_SIZE));
+      if(historyPage>totalPages) historyPage=totalPages;
+      var startIdx=(historyPage-1)*HISTORY_PAGE_SIZE;
+      var rows=allRows.slice(startIdx,startIdx+HISTORY_PAGE_SIZE);
+
+      pagBar.style.display=allRows.length>HISTORY_PAGE_SIZE?'flex':'none';
+      document.getElementById('paginationInfo').textContent=
+        'Memaparkan '+(startIdx+1)+'\u2013'+Math.min(startIdx+HISTORY_PAGE_SIZE,allRows.length)+' daripada '+allRows.length+' rekod';
+      document.getElementById('paginationPages').textContent='Muka '+historyPage+' / '+totalPages;
+      document.getElementById('pagePrev').disabled=historyPage<=1;
+      document.getElementById('pageNext').disabled=historyPage>=totalPages;
+
       var html='';
       for(var j=0;j<rows.length;j++){
         var b=rows[j];
@@ -719,8 +753,14 @@
       }
     }
 
-    document.getElementById('filterPemandu').addEventListener('change',renderHistory);
-    document.getElementById('filterStatus').addEventListener('change',renderHistory);
+    document.getElementById('filterPemandu').addEventListener('change',function(){ historyPage=1; renderHistory(); });
+    document.getElementById('filterStatus').addEventListener('change',function(){ historyPage=1; renderHistory(); });
+    document.getElementById('pagePrev').addEventListener('click',function(){
+      if(historyPage>1){ historyPage--; renderHistory(); }
+    });
+    document.getElementById('pageNext').addEventListener('click',function(){
+      historyPage++; renderHistory();
+    });
   </script>
 </body>
 </html>
