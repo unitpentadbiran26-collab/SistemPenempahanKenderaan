@@ -107,18 +107,23 @@
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--paper-2);color:var(--ink);padding:12px 22px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid var(--mist);opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:300;max-width:90vw;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.error{background:rgba(224,92,92,0.15);border-color:var(--coral);color:var(--coral);}
+  .hamburger-btn{display:none;background:none;border:none;color:var(--ink);padding:6px;cursor:pointer;border-radius:7px;align-items:center;justify-content:center;}
+  .hamburger-btn:hover{background:var(--mist);}
+  .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:149;}
+  .sidebar-backdrop.open{display:block;}
     @media(max-width:768px){
-    .sidebar{display:none;}
+    .hamburger-btn{display:flex;}
+    .sidebar{display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;z-index:150;box-shadow:0 0 30px rgba(0,0,0,.5);width:250px;}
+    .sidebar.open{transform:translateX(0);}
+    .topbar-nav{display:none;}
     .main-content{margin-left:0;padding:14px 14px 40px;}
     :root{--topbar-h:48px;}
-    .topbar{padding:0 12px;gap:10px;}
+    .topbar{padding:0 8px 0 4px;gap:6px;}
     .topbar-brand{width:auto;}
     .brand-mark{width:28px;height:28px;}
     .brand-name{font-size:12px;}
     .brand-sub{font-size:8.5px;}
     .topbar-right .btn-admin{padding:5px 10px;font-size:11px;}
-    .topbar-nav{gap:4px;}
-    .topbar-nav a{padding:5px 8px;font-size:10.5px;}
     .page-header{margin-bottom:14px;}
     .page-header h2{font-size:17px;}
     .page-header p{font-size:11.5px;margin-top:2px;}
@@ -126,13 +131,14 @@
     .pending-name{font-size:13px;}
     .pending-meta{font-size:11px;}
     .pending-info{font-size:11px;padding:6px 10px;}
-    .pending-actions{gap:6px;}
-    .driver-select,.kenderaan-input{min-width:0;padding:6px 10px;font-size:12px;}
+    .pending-actions{gap:6px;flex-direction:column;align-items:stretch;}
+    .driver-select,.kenderaan-input{min-width:0;width:100%;padding:8px 10px;font-size:13px;}
+    .pending-actions .btn{width:100%;}
     .btn{padding:7px 12px;font-size:12px;}
     .btn-sm{padding:5px 9px;font-size:11px;}
     table{font-size:11px;}
     th,td{padding:8px 8px;}
-    .filters select{padding:5px 8px;font-size:12px;}
+    .filters select{padding:5px 8px;font-size:12px;flex:1;min-width:120px;}
     .pin-card{padding:26px 20px;}
   }
   svg{color:#fff;}
@@ -157,6 +163,9 @@
   <div id="adminContent" style="display:none;">
 
     <div class="topbar">
+      <button class="hamburger-btn" id="hamburgerBtn" aria-label="Menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M3 6h18M3 12h18M3 18h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
       <div class="topbar-brand">
         <div class="brand-mark" style="background:transparent;overflow:hidden;">
           <img src="logo.png" width="34" height="34" style="object-fit:contain;">
@@ -176,7 +185,8 @@
     </div>
 
     <div class="app-layout">
-      <aside class="sidebar">
+      <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+      <aside class="sidebar" id="sidebar">
         <div class="sidebar-section">
           <div class="sidebar-label">Panel Admin</div>
           <button class="sidebar-item active" id="sb-pending">
@@ -289,6 +299,8 @@
         document.getElementById('adminContent').style.display='block';
         initFilters();
         loadPending(); loadHistory(); loadDriverStatus();
+        requestNotifPermission();
+        startNotifPolling();
       } catch (err) {
         btn.disabled=false; btn.textContent='Masuk';
         errEl.textContent='PIN salah. Sila cuba lagi.';
@@ -297,6 +309,87 @@
     }
     document.getElementById('pinSubmit').addEventListener('click',submitPin);
     document.getElementById('pinInput').addEventListener('keydown',function(e){ if(e.key==='Enter') submitPin(); });
+
+    // ====================== NOTIFIKASI BROWSER ======================
+    var knownPendingIds = null;
+    var unreadCount = 0;
+    var ORIGINAL_TITLE = document.title;
+
+    function playNotifSound(){
+      try {
+        var ctx = new (window.AudioContext || window.webkitAudioContext)();
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = 880;
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.start(); osc.stop(ctx.currentTime + 0.35);
+      } catch(e){ /* senyap jika audio disekat */ }
+    }
+
+    function updateTitleBadge(){
+      document.title = unreadCount > 0 ? '(' + unreadCount + ') ' + ORIGINAL_TITLE : ORIGINAL_TITLE;
+    }
+
+    document.addEventListener('visibilitychange', function(){
+      if (!document.hidden) { unreadCount = 0; updateTitleBadge(); }
+    });
+
+    function requestNotifPermission(){
+      if (!('Notification' in window)) return;
+      if (Notification.permission === 'granted') {
+        showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
+      } else if (Notification.permission === 'default') {
+        Notification.requestPermission().then(function(perm){
+          if (perm === 'granted') showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
+        });
+      }
+    }
+
+    function notifyNewBooking(booking){
+      unreadCount++;
+      updateTitleBadge();
+      playNotifSound();
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          var n = new Notification('Permohonan Baharu \u2014 Sistem Penempahan Kenderaan', {
+            body: (booking.nama || 'Pemohon') + ' \u2014 ' + (booking.destinasi || ''),
+            tag: 'pending-' + booking.id
+          });
+          n.onclick = function(){ window.focus(); n.close(); };
+        } catch(e){ /* senyap */ }
+      }
+    }
+
+    async function checkNewPending(){
+      try {
+        var rows = await apiGet('getPendingBookings', { pin: ADMIN_PIN_VALUE });
+        if (!rows) return;
+        var currentIds = rows.map(function(r){ return r.id; });
+        if (knownPendingIds === null) {
+          knownPendingIds = new Set(currentIds);
+          return;
+        }
+        var hasNew = false;
+        rows.forEach(function(b){
+          if (!knownPendingIds.has(b.id)) {
+            hasNew = true;
+            notifyNewBooking(b);
+          }
+        });
+        knownPendingIds = new Set(currentIds);
+        if (hasNew) { renderPending(rows); }
+      } catch(err) { /* senyap - elak toast berulang setiap poll gagal */ }
+    }
+
+    var notifPollTimer = null;
+    function startNotifPolling(){
+      checkNewPending();
+      if (notifPollTimer) clearInterval(notifPollTimer);
+      notifPollTimer = setInterval(checkNewPending, 30000);
+    }
+    // ===================================================================
 
     function initFilters(){
       var sb = document.getElementById('sidebarDrivers');
@@ -317,10 +410,21 @@
       document.getElementById('nav-pending').className=page==='pending'?'active':'';
       document.getElementById('nav-semua').className=page==='semua'?'active':'';
     }
-    document.getElementById('sb-pending').addEventListener('click',function(){ showAdminPage('pending'); });
-    document.getElementById('sb-semua').addEventListener('click',function(){ showAdminPage('semua'); });
+    document.getElementById('sb-pending').addEventListener('click',function(){ showAdminPage('pending'); closeDrawer(); });
+    document.getElementById('sb-semua').addEventListener('click',function(){ showAdminPage('semua'); closeDrawer(); });
     document.getElementById('nav-pending').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pending'); });
     document.getElementById('nav-semua').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('semua'); });
+
+    function openDrawer(){
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarBackdrop').classList.add('open');
+    }
+    function closeDrawer(){
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('open');
+    }
+    document.getElementById('hamburgerBtn').addEventListener('click', openDrawer);
+    document.getElementById('sidebarBackdrop').addEventListener('click', closeDrawer);
 
     async function loadDriverStatus(){
       var now=new Date();
