@@ -346,8 +346,10 @@
       var btn = document.getElementById('notifBtn');
       var label = document.getElementById('notifBtnLabel');
       if (!('Notification' in window)) {
-        label.textContent = 'Tidak Disokong';
-        btn.style.color = 'var(--ink-dim)';
+        label.textContent = 'Bunyi/Badge Sahaja';
+        btn.style.color = 'var(--gold)';
+        btn.style.borderColor = 'var(--gold)';
+        btn.title = 'Popup notifikasi tidak disokong pelayar ini, tapi bunyi & badge tab tetap berfungsi selagi tab ini dibuka.';
         return;
       }
       if (Notification.permission === 'granted') {
@@ -367,19 +369,20 @@
 
     function requestNotifPermission(){
       if (!('Notification' in window)) {
-        showToast('Pelayar ini tidak menyokong notifikasi.', true);
+        showToast('Popup notifikasi tidak disokong pelayar ini \u2014 tapi bunyi "ting" & badge pada tab tetap akan berfungsi selagi tab ini dibuka.', false);
+        updateNotifBtn();
         return;
       }
       if (Notification.permission === 'granted') {
         showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
       } else if (Notification.permission === 'denied') {
-        showToast('Notifikasi disekat oleh pelayar. Klik ikon \ud83d\udd12/\u24d8 di sebelah URL \u2192 Notifications \u2192 Allow, kemudian refresh halaman ini.', true);
+        showToast('Notifikasi disekat oleh pelayar. Klik ikon \ud83d\udd12/\u24d8 di sebelah URL \u2192 Notifications \u2192 Allow, kemudian refresh halaman ini. (Bunyi & badge tab tetap berfungsi buat masa ini.)', true);
       } else {
         Notification.requestPermission().then(function(perm){
           if (perm === 'granted') {
             showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
           } else {
-            showToast('Notifikasi tidak diaktifkan. Anda masih akan terima emel seperti biasa.', true);
+            showToast('Popup notifikasi tidak diaktifkan. Bunyi & badge tab tetap berfungsi, dan emel akan tetap dihantar seperti biasa.', true);
           }
           updateNotifBtn();
         });
