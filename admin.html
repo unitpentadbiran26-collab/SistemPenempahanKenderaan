@@ -180,6 +180,7 @@
         <a href="#" id="nav-semua">Semua Permohonan</a>
       </nav>
       <div class="topbar-right">
+        <button class="btn-admin" id="notifBtn" style="background:var(--paper-2);color:var(--ink-dim);border:1px solid var(--mist);" title="Status notifikasi">&#128276; <span id="notifBtnLabel">Notifikasi</span></button>
         <a class="btn-admin" href="index.html">&#8592; Sistem Tempahan</a>
       </div>
     </div>
@@ -301,6 +302,7 @@
         loadPending(); loadHistory(); loadDriverStatus();
         requestNotifPermission();
         startNotifPolling();
+        updateNotifBtn();
       } catch (err) {
         btn.disabled=false; btn.textContent='Masuk';
         errEl.textContent='PIN salah. Sila cuba lagi.';
@@ -333,19 +335,59 @@
     }
 
     document.addEventListener('visibilitychange', function(){
-      if (!document.hidden) { unreadCount = 0; updateTitleBadge(); }
+      if (!document.hidden) {
+        unreadCount = 0;
+        updateTitleBadge();
+        if (ADMIN_PIN_VALUE) checkNewPending();
+      }
     });
 
-    function requestNotifPermission(){
-      if (!('Notification' in window)) return;
+    function updateNotifBtn(){
+      var btn = document.getElementById('notifBtn');
+      var label = document.getElementById('notifBtnLabel');
+      if (!('Notification' in window)) {
+        label.textContent = 'Tidak Disokong';
+        btn.style.color = 'var(--ink-dim)';
+        return;
+      }
       if (Notification.permission === 'granted') {
-        showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
-      } else if (Notification.permission === 'default') {
-        Notification.requestPermission().then(function(perm){
-          if (perm === 'granted') showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
-        });
+        label.textContent = 'Notifikasi ON';
+        btn.style.color = 'var(--ok)';
+        btn.style.borderColor = 'var(--ok)';
+      } else if (Notification.permission === 'denied') {
+        label.textContent = 'Disekat \u2014 klik untuk panduan';
+        btn.style.color = 'var(--coral)';
+        btn.style.borderColor = 'var(--coral)';
+      } else {
+        label.textContent = 'Klik untuk Aktifkan';
+        btn.style.color = 'var(--gold)';
+        btn.style.borderColor = 'var(--gold)';
       }
     }
+
+    function requestNotifPermission(){
+      if (!('Notification' in window)) {
+        showToast('Pelayar ini tidak menyokong notifikasi.', true);
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
+      } else if (Notification.permission === 'denied') {
+        showToast('Notifikasi disekat oleh pelayar. Klik ikon \ud83d\udd12/\u24d8 di sebelah URL \u2192 Notifications \u2192 Allow, kemudian refresh halaman ini.', true);
+      } else {
+        Notification.requestPermission().then(function(perm){
+          if (perm === 'granted') {
+            showToast('\ud83d\udd14 Notifikasi permohonan baharu diaktifkan.', false);
+          } else {
+            showToast('Notifikasi tidak diaktifkan. Anda masih akan terima emel seperti biasa.', true);
+          }
+          updateNotifBtn();
+        });
+      }
+      updateNotifBtn();
+    }
+
+    document.getElementById('notifBtn').addEventListener('click', requestNotifPermission);
 
     function notifyNewBooking(booking){
       unreadCount++;
