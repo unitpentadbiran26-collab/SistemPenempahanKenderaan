@@ -104,6 +104,16 @@
   .filters select{border:1px solid var(--mist);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;background:var(--paper-2);color:var(--ink);}
   .filters select:focus{outline:none;border-color:var(--gold);}
   .filters select option{background:var(--paper-2);}
+  .history-cards{display:none;flex-direction:column;gap:10px;}
+  .hist-card{background:var(--paper);border:1px solid var(--mist);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;}
+  .hist-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .hist-card-name{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .hist-card-email{font-size:11.5px;color:var(--ink-dim);margin-top:2px;}
+  .hist-card-row{font-size:12.5px;color:var(--ink-dim);margin-top:9px;display:flex;gap:6px;}
+  .hist-card-row b{color:var(--ink);font-weight:600;min-width:82px;flex-shrink:0;}
+  .hist-card-note{font-size:12px;color:var(--ink);margin-top:9px;background:var(--mist-2);padding:7px 10px;border-radius:7px;border:1px solid var(--mist);}
+  .hist-card-actions{display:flex;gap:8px;margin-top:12px;}
+  .hist-card-actions .btn{flex:1;text-align:center;}
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--paper-2);color:var(--ink);padding:12px 22px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid var(--mist);opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;z-index:300;max-width:90vw;}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
   .toast.error{background:rgba(224,92,92,0.15);border-color:var(--coral);color:var(--coral);}
@@ -140,6 +150,8 @@
     th,td{padding:8px 8px;}
     .filters select{padding:5px 8px;font-size:12px;flex:1;min-width:120px;}
     .pin-card{padding:26px 20px;}
+    .history-table-wrap{display:none;}
+    .history-cards{display:flex;}
   }
   svg{color:#fff;}
   </style>
@@ -224,7 +236,7 @@
               <option value="Dibatalkan">Dibatalkan</option>
             </select>
           </div>
-          <div class="card" style="overflow-x:auto;">
+          <div class="card history-table-wrap" style="overflow-x:auto;">
             <table>
               <thead>
                 <tr><th>Pemohon</th><th>Bahagian</th><th>Tarikh Mula</th><th>Tarikh Kembali</th><th>Masa</th><th>Destinasi</th><th>Pemandu</th><th>No. Kenderaan</th><th>Status</th><th>Catatan</th><th>Cetak</th><th>Tindakan</th></tr>
@@ -232,6 +244,7 @@
               <tbody id="historyBody"><tr><td colspan="12" style="text-align:center;color:var(--ink-dim);padding:28px;">Memuatkan...</td></tr></tbody>
             </table>
           </div>
+          <div class="history-cards" id="historyCards"></div>
         </div>
       </main>
     </div>
@@ -638,6 +651,51 @@
       tbody.innerHTML=html;
 
       var cancelBtns=tbody.querySelectorAll('.cancel-btn');
+      for(var k=0;k<cancelBtns.length;k++){
+        cancelBtns[k].addEventListener('click',function(){
+          var id=this.getAttribute('data-id');
+          var reason=prompt('Sebab pembatalan (pilihan) \u2014 cth: Pemohon batalkan sendiri:');
+          if(reason===null) return;
+          cancelBookingRow(id,reason,this);
+        });
+      }
+
+      renderHistoryCards(rows);
+    }
+
+    function renderHistoryCards(rows){
+      var el=document.getElementById('historyCards');
+      if(!rows.length){
+        el.innerHTML='<div class="empty-state">Tiada rekod.</div>';
+        return;
+      }
+      var html='';
+      for(var i=0;i<rows.length;i++){
+        var b=rows[i];
+        html+='<div class="hist-card" data-id="'+escapeHtml(b.id)+'">';
+        html+='<div class="hist-card-top">';
+        html+='<div><div class="hist-card-name">'+escapeHtml(b.nama)+'</div><div class="hist-card-email">'+escapeHtml(b.emel)+'</div></div>';
+        html+='<span class="badge badge-'+b.status+'">'+escapeHtml(b.status)+'</span>';
+        html+='</div>';
+        html+='<div class="hist-card-row"><b>Bahagian</b>'+escapeHtml(b.bahagian)+(b.unit&&b.unit!=='-'?' &middot; '+escapeHtml(b.unit):'')+'</div>';
+        html+='<div class="hist-card-row"><b>Tarikh</b>'+escapeHtml(b.tarikhMula)+' &rarr; '+escapeHtml(b.tarikhKembali)+' &middot; '+escapeHtml(b.masaMula)+'</div>';
+        html+='<div class="hist-card-row"><b>Destinasi</b>'+escapeHtml(b.destinasi)+'</div>';
+        html+='<div class="hist-card-row"><b>Pemandu</b>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+
+              (b.kenderaan&&b.kenderaan!=='-'?' &middot; '+escapeHtml(b.kenderaan):'')+'</div>';
+        if(b.catatanAdmin){
+          html+='<div class="hist-card-note">'+escapeHtml(b.catatanAdmin)+'</div>';
+        }
+        html+='<div class="hist-card-actions">';
+        html+='<a class="btn btn-ghost btn-sm" href="print.html?id='+encodeURIComponent(b.id)+'">Cetak</a>';
+        if(b.status==='Menunggu'||b.status==='Diluluskan'){
+          html+='<button class="btn btn-danger btn-sm hist-cancel-btn" data-id="'+escapeHtml(b.id)+'">Batalkan</button>';
+        }
+        html+='</div>';
+        html+='</div>';
+      }
+      el.innerHTML=html;
+
+      var cancelBtns=el.querySelectorAll('.hist-cancel-btn');
       for(var k=0;k<cancelBtns.length;k++){
         cancelBtns[k].addEventListener('click',function(){
           var id=this.getAttribute('data-id');
