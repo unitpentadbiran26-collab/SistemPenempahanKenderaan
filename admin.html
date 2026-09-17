@@ -272,6 +272,7 @@
     // ====================== KONFIGURASI - WAJIB TUKAR ======================
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
+    const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 6589 V','SAB 1489 M','SB 9465 A'];
     // =========================================================================
 
     var allBookings = [];
@@ -574,7 +575,12 @@
           html+='<option value="'+escapeHtml(DRIVERS[j])+'">'+escapeHtml(DRIVERS[j])+'</option>';
         }
         html+='</select>';
-        html+='<input type="text" class="kenderaan-input" id="kenderaan-'+escapeHtml(b.id)+'" placeholder="No. Kenderaan" style="width:140px;">';
+        html+='<select class="kenderaan-input" id="kenderaan-'+escapeHtml(b.id)+'" style="width:140px;">';
+        html+='<option value="">-- No. Kenderaan --</option>';
+        for(var k=0;k<KENDERAAN.length;k++){
+          html+='option value="'+escapeHtml(KENDERAAN[k])+'">'+escapeHtml(KENDERAAN[k])+'</option>';
+        } 
+        html+='</select>';
         html+='<button class="btn btn-primary btn-sm approve-btn">&#10003; Luluskan</button>';
         html+='<button class="btn btn-danger btn-sm reject-toggle-btn">&#10007; Tolak</button>';
         html+='</div>';
