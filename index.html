@@ -128,13 +128,28 @@
   .driver-mcard-name{font-weight:700;font-size:14.5px;color:var(--ink);}
   .driver-mcard-trip{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--mist);font-size:12.5px;color:var(--ink-dim);}
   .driver-mcard-trip b{color:var(--gold-light);font-weight:600;}
+  .driver-info-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+  .driver-info-card{background:var(--paper-2);border:1px solid var(--mist);border-radius:10px;padding:16px 18px;}
+  .dic-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .dic-name{font-weight:700;font-size:14.5px;color:var(--ink);}
+  .dic-details{margin-top:11px;padding-top:11px;border-top:1px solid var(--mist);}
+  .dic-row{font-size:12px;color:var(--ink-dim);margin-top:7px;display:flex;gap:8px;line-height:1.4;}
+  .dic-row b{color:var(--ink);font-weight:600;min-width:104px;flex-shrink:0;}
+  .freq-card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+  .freq-card-head h3{font-size:15px;font-weight:700;}
+  .freq-toggle{display:flex;gap:6px;}
+  .freq-btn{border:1px solid var(--mist);background:var(--paper-2);color:var(--ink-dim);padding:6px 14px;border-radius:7px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .freq-btn.active{background:linear-gradient(135deg,var(--gold),var(--gold-dark));color:var(--navy);border-color:var(--gold-dark);}
+  .freq-row{display:flex;align-items:center;gap:12px;margin-bottom:11px;}
+  .freq-row:last-child{margin-bottom:0;}
+  .freq-name{width:120px;flex-shrink:0;font-size:12.5px;font-weight:600;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .freq-bar-wrap{flex:1;height:10px;background:var(--mist-2);border-radius:6px;overflow:hidden;}
+  .freq-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-dark));border-radius:6px;transition:width .3s ease;}
+  .freq-count{width:34px;text-align:right;font-size:12.5px;font-weight:700;color:var(--gold);flex-shrink:0;}
   .sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:149;}
   .sidebar-backdrop.open{display:block;}
   @media(max-width:768px){
     .hamburger-btn{display:flex;}
-    .timeline-scroll,.ruler,.timeline-hint{display:none !important;}
-    .mobile-driver-cards{display:flex;}
-    .pending-strip{display:flex;}
     .sidebar{display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;z-index:150;box-shadow:0 0 30px rgba(0,0,0,.5);width:250px;}
     .sidebar.open{transform:translateX(0);}
     .topbar-nav{display:none;}
@@ -162,15 +177,9 @@
     .legend i{width:9px;height:9px;}
     .card{padding:0 !important;}
     .card > div{padding:10px !important;}
-    .ruler{margin-left:90px;height:16px;margin-bottom:5px;}
-    .ruler .tick{font-size:9px;}
-    .driver-row{margin-bottom:5px;}
-    .driver-label{width:90px;padding-left:6px;padding-right:6px;gap:2px;}
-    .driver-name{font-size:10.5px;}
-    .driver-badge{font-size:8px;padding:1px 5px;}
-    .track{height:38px;}
-    .block{font-size:9px;padding:3px 5px;}
-    .block small{font-size:8px;}
+    .driver-info-cards{grid-template-columns:1fr;gap:10px;}
+    .freq-card-head{margin-bottom:12px;}
+    .freq-name{width:88px;font-size:11.5px;}
     .btn{padding:7px 12px;font-size:12px;}
     .field label{font-size:9.5px;}
     .field input,.field select,.field textarea{padding:8px 10px;font-size:13px;}
@@ -224,12 +233,24 @@
 
     <main class="main-content">
       <div id="page-jadual">
-        <div class="page-header"><h2>Jadual Pemandu</h2><p>Semak ketersediaan pemandu mengikut tarikh</p></div>
+        <div class="page-header"><h2>Jadual Pemandu</h2><p>Semak ketersediaan dan aktiviti pemandu</p></div>
         <div class="stat-grid">
           <div class="stat-card"><div class="stat-label">Jumlah Pemandu</div><div class="stat-value" id="statTotal">-</div><div class="stat-sub">Pemandu berdaftar</div></div>
-          <div class="stat-card"><div class="stat-label">Available Hari Ini</div><div class="stat-value" id="statAvail">-</div><div class="stat-sub">Pemandu boleh ditugaskan</div></div>
+          <div class="stat-card"><div class="stat-label">Available</div><div class="stat-value" id="statAvail">-</div><div class="stat-sub">Pemandu boleh ditugaskan</div></div>
           <div class="stat-card"><div class="stat-label">Sedang Bertugas</div><div class="stat-value" id="statBusy">-</div><div class="stat-sub">Tidak available</div></div>
         </div>
+
+        <div class="card" style="padding:20px;margin-bottom:20px;">
+          <div class="freq-card-head">
+            <h3>Kekerapan Pemandu Jalan</h3>
+            <div class="freq-toggle">
+              <button class="freq-btn active" id="freqWeekBtn" data-period="week">Mingguan</button>
+              <button class="freq-btn" id="freqMonthBtn" data-period="month">Bulanan</button>
+            </div>
+          </div>
+          <div id="freqList"><p style="font-size:12.5px;color:var(--ink-dim);">Memuatkan...</p></div>
+        </div>
+
         <div class="datebar">
           <button class="nav-btn" id="prevDay">&#8249;</button>
           <input type="date" id="dateInput">
@@ -237,16 +258,12 @@
           <button class="btn btn-sm btn-ghost" id="todayBtn">Hari Ini</button>
         </div>
         <div class="legend">
-          <span><i class="dot-kosong"></i> Kosong</span>
+          <span><i class="dot-kosong"></i> Available</span>
           <span><i class="dot-menunggu"></i> Menunggu Kelulusan</span>
           <span><i class="dot-diluluskan"></i> Sedang Bertugas</span>
         </div>
-        <div class="card" style="padding:20px;">
-          <div class="pending-strip" id="pendingStrip"></div>
-          <div class="timeline-scroll"><div class="timeline-grid"><div class="ruler" id="ruler"></div><div id="drivers"></div></div></div>
-          <div class="mobile-driver-cards" id="mobileDriverCards"></div>
-          <p class="timeline-hint" style="font-size:12px;color:var(--ink-dim);margin-top:14px;">Klik pada garis masa atau butang "Mohon Pemandu" untuk hantar permohonan.</p>
-        </div>
+        <div class="pending-strip" id="pendingStrip"></div>
+        <div class="driver-info-cards" id="driverInfoCards"></div>
       </div>
 
       <div id="page-mohon" style="display:none;">
@@ -366,104 +383,44 @@
         BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
     }
 
-    function buildRuler(){
-      var ruler = document.getElementById('ruler');
-      ruler.innerHTML = '';
-      for (var h = WORK_START; h <= WORK_END; h++){
-        var tick = document.createElement('span');
-        tick.className = 'tick';
-        tick.style.left = ((h-WORK_START)/(WORK_END-WORK_START)*100)+'%';
-        tick.textContent = pad(h)+':00';
-        ruler.appendChild(tick);
-      }
-    }
-
-    function buildDriverRows(){
-      var container = document.getElementById('drivers');
-      container.innerHTML = '';
-      DRIVERS.forEach(function(driver){
-        var row = document.createElement('div');
-        row.className = 'driver-row';
-        var label = document.createElement('div');
-        label.className = 'driver-label';
-        label.innerHTML =
-          '<div class="driver-name">'+driver+'</div>'+
-          '<span class="driver-badge badge-available" id="badge-'+driver.replace(/\s/g,'_')+'">&#9679; Available</span>';
-        var track = document.createElement('div');
-        track.className = 'track';
-        track.dataset.driver = driver;
-        for (var h = WORK_START; h <= WORK_END; h++){
-          var g = document.createElement('div');
-          g.className = 'hgrid';
-          g.style.left = ((h-WORK_START)/(WORK_END-WORK_START)*100)+'%';
-          track.appendChild(g);
-        }
-        track.addEventListener('click', function(ev){
-          if (ev.target !== this) return;
-          showPage('mohon');
-          document.getElementById('f_tarikhMula').value = currentDate;
-          document.getElementById('f_tarikhKembali').value = currentDate;
-        });
-        row.appendChild(label);
-        row.appendChild(track);
-        container.appendChild(row);
-      });
-    }
-
     function renderBookings(bookings){
       bookingsCache = bookings || [];
       var busy = 0;
+      var html = '';
 
-      DRIVERS.forEach(function(d){
-        var badge = document.getElementById('badge-'+d.replace(/\s/g,'_'));
-        var dot = document.getElementById('dot-'+d.replace(/\s/g,'_'));
-        if (badge){ badge.className='driver-badge badge-available'; badge.textContent='\u25CF Available'; }
-        if (dot){ dot.className='driver-dot available'; }
-        var track = document.querySelector('.track[data-driver="'+d+'"]');
-        if (track) track.querySelectorAll('.block').forEach(function(b){ b.remove(); });
+      DRIVERS.forEach(function(driver){
+        var trip = bookingsCache.find(function(b){
+          return b.pemandu === driver && b.status === 'Diluluskan';
+        });
+        var available = !trip;
+        if (!available) busy++;
+
+        var dot = document.getElementById('dot-'+driver.replace(/\s/g,'_'));
+        if (dot) dot.className = 'driver-dot ' + (available ? 'available' : 'busy');
+
+        html += '<div class="driver-info-card">';
+        html += '<div class="dic-top">';
+        html += '<div class="dic-name">' + driver + '</div>';
+        html += '<span class="driver-badge ' + (available ? 'badge-available' : 'badge-unavailable') + '">' +
+                (available ? '&#9679; Available' : '&#9679; Tidak Available') + '</span>';
+        html += '</div>';
+        if (trip){
+          html += '<div class="dic-details">';
+          html += '<div class="dic-row"><b>Masa Mula</b>' + (trip.masaMula||'-') + '</div>';
+          html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
+          html += '<div class="dic-row"><b>Tarikh</b>' + (trip.tarikhMula||'-') + ' &rarr; ' + (trip.tarikhKembali||'-') + '</div>';
+          html += '<div class="dic-row"><b>No. Kenderaan</b>' + (trip.kenderaan||'-') + '</div>';
+          html += '<div class="dic-row"><b>Bahagian/Unit</b>' + (trip.bahagian||'-') + (trip.unit && trip.unit!=='-' ? ' &middot; '+trip.unit : '') + '</div>';
+          html += '<div class="dic-row"><b>Tujuan</b>' + (trip.tujuan||'-') + '</div>';
+          html += '</div>';
+        }
+        html += '</div>';
       });
 
-      bookingsCache.forEach(function(b){
-        if (b.pemandu && b.pemandu !== '-' && b.status === 'Diluluskan'){
-          var badge = document.getElementById('badge-'+b.pemandu.replace(/\s/g,'_'));
-          var dot = document.getElementById('dot-'+b.pemandu.replace(/\s/g,'_'));
-          if (badge){ badge.className='driver-badge badge-unavailable'; badge.textContent='\u25CF Tidak Available'; busy++; }
-          if (dot){ dot.className='driver-dot busy'; }
-          var track = document.querySelector('.track[data-driver="'+b.pemandu+'"]');
-          if (track){
-            var sMin = Math.max(toMin(b.masaMula||'08:00'), WORK_START*60);
-            var eMin = Math.min(sMin+120, WORK_END*60);
-            var total = (WORK_END-WORK_START)*60;
-            var el = document.createElement('div');
-            el.className = 'block Diluluskan';
-            el.style.left = ((sMin-WORK_START*60)/total*100)+'%';
-            el.style.width = Math.max(((eMin-sMin)/total*100),3)+'%';
-            el.title = b.nama+'\n'+b.tarikhMula+' - '+b.tarikhKembali+'\nDestinasi: '+b.destinasi;
-            el.innerHTML = b.nama+'<small>'+b.destinasi+'</small>';
-            track.appendChild(el);
-          }
-        }
-        if (b.status === 'Menunggu'){
-          var track = document.querySelector('.track[data-driver="'+DRIVERS[0]+'"]');
-          if (track){
-            var sMin = Math.max(toMin(b.masaMula||'08:00'), WORK_START*60);
-            var eMin = Math.min(sMin+60, WORK_END*60);
-            var total = (WORK_END-WORK_START)*60;
-            var el = document.createElement('div');
-            el.className = 'block Menunggu';
-            el.style.left = ((sMin-WORK_START*60)/total*100)+'%';
-            el.style.width = Math.max(((eMin-sMin)/total*100),2)+'%';
-            el.title = b.nama+' (Menunggu)\nDestinasi: '+b.destinasi;
-            el.innerHTML = b.nama+'<small>Menunggu...</small>';
-            track.appendChild(el);
-          }
-        }
-      });
-
+      document.getElementById('driverInfoCards').innerHTML = html;
       document.getElementById('statAvail').textContent = DRIVERS.length - busy;
       document.getElementById('statBusy').textContent = busy;
 
-      renderMobileDriverCards();
       renderPendingStrip();
     }
 
@@ -477,27 +434,27 @@
       el.innerHTML = html;
     }
 
-    function renderMobileDriverCards(){
-      var el = document.getElementById('mobileDriverCards');
-      var html = '';
-      DRIVERS.forEach(function(driver){
-        var trip = bookingsCache.find(function(b){
-          return b.pemandu === driver && b.status === 'Diluluskan';
-        });
-        var available = !trip;
-        html += '<div class="driver-mcard">';
-        html += '<div class="driver-mcard-top">';
-        html += '<div class="driver-mcard-name">' + driver + '</div>';
-        html += '<span class="driver-badge ' + (available ? 'badge-available' : 'badge-unavailable') + '">' +
-                (available ? '&#9679; Available' : '&#9679; Tidak Available') + '</span>';
-        html += '</div>';
-        if (trip){
-          html += '<div class="driver-mcard-trip">&#128663;&nbsp;<b>' + trip.destinasi + '</b>&nbsp;&middot;&nbsp;' + (trip.masaMula||'') + '</div>';
-        }
-        html += '</div>';
-      });
-      el.innerHTML = html;
+    var currentFreqPeriod = 'week';
+    async function loadFrequency(period){
+      currentFreqPeriod = period;
+      document.getElementById('freqWeekBtn').classList.toggle('active', period === 'week');
+      document.getElementById('freqMonthBtn').classList.toggle('active', period === 'month');
+      var el = document.getElementById('freqList');
+      try {
+        var rows = await apiGet('getDriverFrequency', { period: period });
+        var maxCount = Math.max.apply(null, rows.map(function(r){ return r.kekerapan; }).concat([1]));
+        el.innerHTML = rows.map(function(r){
+          var pct = Math.round((r.kekerapan / maxCount) * 100);
+          return '<div class="freq-row"><div class="freq-name">' + r.nama + '</div>' +
+                 '<div class="freq-bar-wrap"><div class="freq-bar" style="width:' + pct + '%;"></div></div>' +
+                 '<div class="freq-count">' + r.kekerapan + 'x</div></div>';
+        }).join('');
+      } catch (err) {
+        el.innerHTML = '<p style="font-size:12.5px;color:var(--coral);">Gagal memuatkan: ' + err.message + '</p>';
+      }
     }
+    document.getElementById('freqWeekBtn').addEventListener('click', function(){ loadFrequency('week'); });
+    document.getElementById('freqMonthBtn').addEventListener('click', function(){ loadFrequency('month'); });
 
     async function loadDate(dateStr){
       currentDate = dateStr;
@@ -580,9 +537,8 @@
     });
 
     initStaticLists();
-    buildRuler();
-    buildDriverRows();
     loadDate(fmtDate(new Date()));
+    loadFrequency('week');
   </script>
 </body>
 </html>
