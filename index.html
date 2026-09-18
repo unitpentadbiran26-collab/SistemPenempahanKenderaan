@@ -282,6 +282,11 @@
             <div class="field"><label>Tarikh Dikembalikan</label><input type="date" id="f_tarikhKembali" required></div>
           </div>
           <div class="field"><label>Masa Mula</label><input type="time" id="f_masaMula" required></div>
+          <div class="field" id="masaTamatWrap">
+            <label>Masa Tamat <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan &mdash; hanya untuk perjalanan 1 hari)</span></label>
+            <input type="time" id="f_masaTamat">
+            <div style="font-size:11px;color:var(--ink-dim);margin-top:5px;" id="masaTamatHint">Kalau diisi, pemandu automatik "Available" balik selepas jam ni pada hari yang sama.</div>
+          </div>
           <div class="field"><label>Nama Pemohon</label><input type="text" id="f_nama" placeholder="Nama penuh" required></div>
           <div class="field"><label>Bahagian</label><select id="f_bahagian" required><option value="">-- Pilih Bahagian --</option></select></div>
           <div class="field"><label>Unit</label><input type="text" id="f_unit" placeholder="Contoh: Unit Pentadbiran"></div>
@@ -373,6 +378,25 @@
     document.getElementById('nav-mohon').addEventListener('click', function(e){ e.preventDefault(); showPage('mohon'); });
     document.getElementById('cancelBtn').addEventListener('click', function(){ showPage('jadual'); });
 
+    function toggleMasaTamat(){
+      var mula = document.getElementById('f_tarikhMula').value;
+      var kembali = document.getElementById('f_tarikhKembali').value;
+      var wrap = document.getElementById('masaTamatWrap');
+      var input = document.getElementById('f_masaTamat');
+      var isSingleDay = mula && kembali && mula === kembali;
+      if (isSingleDay){
+        wrap.style.opacity = '1';
+        input.disabled = false;
+      } else {
+        input.value = '';
+        input.disabled = true;
+        wrap.style.opacity = '.45';
+      }
+    }
+    document.getElementById('f_tarikhMula').addEventListener('change', toggleMasaTamat);
+    document.getElementById('f_tarikhKembali').addEventListener('change', toggleMasaTamat);
+    toggleMasaTamat();
+
     function openDrawer(){
       document.getElementById('sidebar').classList.add('open');
       document.getElementById('sidebarBackdrop').classList.add('open');
@@ -431,6 +455,7 @@
         } else if (trip){
           html += '<div class="dic-details">';
           html += '<div class="dic-row"><b>Masa Mula</b>' + (trip.masaMula||'-') + '</div>';
+          if (trip.masaTamat){ html += '<div class="dic-row"><b>Masa Tamat</b>' + trip.masaTamat + '</div>'; }
           html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
           html += '<div class="dic-row"><b>Tarikh</b>' + (trip.tarikhMula||'-') + ' &rarr; ' + (trip.tarikhKembali||'-') + '</div>';
           html += '<div class="dic-row"><b>No. Kenderaan</b>' + (trip.kenderaan||'-') + '</div>';
@@ -553,6 +578,7 @@
       var tarikhMula = document.getElementById('f_tarikhMula').value;
       var tarikhKembali = document.getElementById('f_tarikhKembali').value;
       var masaMula = document.getElementById('f_masaMula').value;
+      var masaTamat = document.getElementById('f_masaTamat').disabled ? '' : document.getElementById('f_masaTamat').value;
       var nama = document.getElementById('f_nama').value.trim();
       var bahagian = document.getElementById('f_bahagian').value;
       var unit = document.getElementById('f_unit').value.trim();
@@ -564,6 +590,7 @@
       if (!tarikhKembali){ errBox.textContent='Sila pilih Tarikh Dikembalikan.'; errBox.classList.add('show'); return; }
       if (tarikhMula > tarikhKembali){ errBox.textContent='Tarikh kembali mesti sama atau selepas tarikh mula.'; errBox.classList.add('show'); return; }
       if (!masaMula){ errBox.textContent='Sila pilih Masa Mula.'; errBox.classList.add('show'); return; }
+      if (masaTamat && masaTamat <= masaMula){ errBox.textContent='Masa Tamat mesti selepas Masa Mula.'; errBox.classList.add('show'); return; }
       if (!nama){ errBox.textContent='Sila isi Nama Pemohon.'; errBox.classList.add('show'); return; }
       if (!bahagian){ errBox.textContent='Sila pilih Bahagian.'; errBox.classList.add('show'); return; }
       if (!emel){ errBox.textContent='Sila isi Emel.'; errBox.classList.add('show'); return; }
@@ -573,15 +600,16 @@
       var btn = this;
       btn.disabled = true; btn.textContent = 'Menghantar...';
       try {
-        var res = await apiPost('submitBooking', { tarikhMula:tarikhMula, tarikhKembali:tarikhKembali, masaMula:masaMula, nama:nama, bahagian:bahagian, unit:unit||'-', emel:emel, destinasi:destinasi, tujuan:tujuan });
+        var res = await apiPost('submitBooking', { tarikhMula:tarikhMula, tarikhKembali:tarikhKembali, masaMula:masaMula, masaTamat:masaTamat, nama:nama, bahagian:bahagian, unit:unit||'-', emel:emel, destinasi:destinasi, tujuan:tujuan });
         btn.disabled = false; btn.textContent = 'Hantar Permohonan';
         if (res.ok){
           showToast(res.message, false);
           showPage('jadual');
           loadDate(currentDate);
-          ['f_tarikhMula','f_tarikhKembali','f_masaMula','f_nama','f_bahagian','f_unit','f_destinasi','f_tujuan'].forEach(function(id){
+          ['f_tarikhMula','f_tarikhKembali','f_masaMula','f_masaTamat','f_nama','f_bahagian','f_unit','f_destinasi','f_tujuan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
+          toggleMasaTamat();
           if (res.id){
             document.getElementById('printOverlayMsg').textContent = res.message;
             document.getElementById('printOverlayLink').href = API_URL + '?page=print&id=' + encodeURIComponent(res.id);
