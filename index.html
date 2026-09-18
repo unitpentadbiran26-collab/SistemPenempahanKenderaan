@@ -459,8 +459,10 @@
           html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
           html += '<div class="dic-row"><b>Tarikh</b>' + (trip.tarikhMula||'-') + ' &rarr; ' + (trip.tarikhKembali||'-') + '</div>';
           html += '<div class="dic-row"><b>No. Kenderaan</b>' + (trip.kenderaan||'-') + '</div>';
-          html += '<div class="dic-row"><b>Bahagian/Unit</b>' + (trip.bahagian||'-') + (trip.unit && trip.unit!=='-' ? ' &middot; '+trip.unit : '') + '</div>';
+          html += '<div class="dic-row"><b>Nama/Unit</b>' + (trip.nama||'-') + (trip.unit && trip.unit!=='-' ? ' &middot; '+trip.unit : '') + '</div>';
+          html += '<div class="dic-row"><b>Bahagian</b>' + (trip.bahagian||'-') + '</div>';
           html += '<div class="dic-row"><b>Tujuan</b>' + (trip.tujuan||'-') + '</div>';
+          if (trip.noPhonePemandu){ html += '<div class="dic-row"><b>No. Phone Pemandu</b>' + trip.noPhonePemandu + '</div>'; }
           html += '</div>';
         }
         html += '<div style="font-size:11px;color:var(--ink-dim);margin-top:10px;">Klik untuk lihat jadual penuh &rarr;</div>';
@@ -504,6 +506,9 @@
             html += '<div class="sched-row"><b>Destinasi</b>' + r.destinasi + '</div>';
             html += '<div class="sched-row"><b>Tujuan</b>' + r.tujuan + '</div>';
             html += '<div class="sched-row"><b>No. Kenderaan</b>' + (r.kenderaan||'-') + '</div>';
+            html += '<div class="sched-row"><b>Nama/Unit</b>' + (r.nama||'-') + (r.unit && r.unit!=='-' ? ' &middot; '+r.unit : '') + '</div>';
+            html += '<div class="sched-row"><b>Bahagian</b>' + (r.bahagian||'-') + '</div>';
+            if (r.noPhonePemandu){ html += '<div class="sched-row"><b>No. Phone Pemandu</b>' + r.noPhonePemandu + '</div>'; }
             html += '</div>';
           });
         }
