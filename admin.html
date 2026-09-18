@@ -278,7 +278,33 @@
         </div>
 
         <div id="page-pemandu" style="display:none;">
-          <div class="page-header"><h2>Uruskan Pemandu</h2><p>Tandakan pemandu tidak available secara manual (cuti, kereta servis, dsb.)</p></div>
+          <div class="page-header"><h2>Uruskan Pemandu</h2><p>Tandakan pemandu tidak available, atau jadualkan perjalanan terus</p></div>
+
+          <div class="card" style="padding:20px;margin-bottom:20px;max-width:560px;">
+            <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Jadualkan Pemandu (Terus Diluluskan)</div>
+            <p style="font-size:12px;color:var(--ink-dim);margin:-8px 0 16px;">Untuk admin susun jadual pemandu terlebih awal, tanpa perlu tunggu sesiapa isi borang "Mohon Pemandu". Tempahan ini terus berstatus Diluluskan.</p>
+            <div class="form-error" id="scheduleError"></div>
+            <div class="field-row">
+              <div class="field"><label>Pemandu</label><select id="sc_pemandu"><option value="">-- Pilih Pemandu --</option></select></div>
+              <div class="field"><label>No. Kenderaan</label><select id="sc_kenderaan"><option value="">-- Pilih Kenderaan --</option></select></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Tarikh Mula</label><input type="date" id="sc_tarikhMula"></div>
+              <div class="field"><label>Tarikh Kembali</label><input type="date" id="sc_tarikhKembali"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Masa Mula</label><input type="time" id="sc_masaMula"></div>
+              <div class="field" id="sc_masaTamatWrap"><label>Masa Tamat <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(1 hari sahaja)</span></label><input type="time" id="sc_masaTamat"></div>
+            </div>
+            <div class="field"><label>Destinasi</label><input type="text" id="sc_destinasi" placeholder="Contoh: Kota Kinabalu"></div>
+            <div class="field"><label>Tujuan</label><input type="text" id="sc_tujuan" placeholder="Contoh: Hantar dokumen ke Ibu Pejabat"></div>
+            <div class="field-row">
+              <div class="field"><label>Untuk (Nama/Unit) <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Unit Logistik"></div>
+              <div class="field"><label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_bahagian" placeholder="Contoh: Khidmat Pengurusan"></div>
+            </div>
+            <div class="field"><label>Catatan <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_catatan" placeholder="Nota tambahan (jika ada)"></div>
+            <button class="btn btn-primary" id="sc_submitBtn" style="width:100%;">Jadualkan Pemandu</button>
+          </div>
 
           <div class="card" style="padding:20px;margin-bottom:20px;max-width:560px;">
             <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Tandakan Tidak Available</div>
@@ -542,6 +568,13 @@
       var sel = document.getElementById('ua_pemandu');
       sel.innerHTML = '<option value="">-- Pilih Pemandu --</option>' +
         DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+
+      var scP = document.getElementById('sc_pemandu');
+      scP.innerHTML = '<option value="">-- Pilih Pemandu --</option>' +
+        DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+      var scK = document.getElementById('sc_kenderaan');
+      scK.innerHTML = '<option value="">-- Pilih Kenderaan --</option>' +
+        KENDERAAN.map(function(k){ return '<option value="'+k+'">'+k+'</option>'; }).join('');
     }
 
     async function loadUnavailList(){
@@ -607,6 +640,76 @@
       }
     });
     initUnavailForm();
+
+    // ====================== JADUALKAN PEMANDU (ADMIN TERUS) ======================
+    function toggleScheduleMasaTamat(){
+      var mula = document.getElementById('sc_tarikhMula').value;
+      var kembali = document.getElementById('sc_tarikhKembali').value;
+      var wrap = document.getElementById('sc_masaTamatWrap');
+      var input = document.getElementById('sc_masaTamat');
+      var isSingleDay = mula && kembali && mula === kembali;
+      if (isSingleDay){
+        wrap.style.opacity = '1';
+        input.disabled = false;
+      } else {
+        input.value = '';
+        input.disabled = true;
+        wrap.style.opacity = '.45';
+      }
+    }
+    document.getElementById('sc_tarikhMula').addEventListener('change', toggleScheduleMasaTamat);
+    document.getElementById('sc_tarikhKembali').addEventListener('change', toggleScheduleMasaTamat);
+    toggleScheduleMasaTamat();
+
+    document.getElementById('sc_submitBtn').addEventListener('click', async function(){
+      var errBox = document.getElementById('scheduleError');
+      errBox.classList.remove('show');
+
+      var pemandu = document.getElementById('sc_pemandu').value;
+      var kenderaan = document.getElementById('sc_kenderaan').value;
+      var tarikhMula = document.getElementById('sc_tarikhMula').value;
+      var tarikhKembali = document.getElementById('sc_tarikhKembali').value;
+      var masaMula = document.getElementById('sc_masaMula').value;
+      var masaTamat = document.getElementById('sc_masaTamat').disabled ? '' : document.getElementById('sc_masaTamat').value;
+      var destinasi = document.getElementById('sc_destinasi').value.trim();
+      var tujuan = document.getElementById('sc_tujuan').value.trim();
+      var nama = document.getElementById('sc_nama').value.trim();
+      var bahagian = document.getElementById('sc_bahagian').value.trim();
+      var catatan = document.getElementById('sc_catatan').value.trim();
+
+      if (!pemandu){ errBox.textContent='Sila pilih pemandu.'; errBox.classList.add('show'); return; }
+      if (!kenderaan){ errBox.textContent='Sila pilih no. kenderaan.'; errBox.classList.add('show'); return; }
+      if (!tarikhMula || !tarikhKembali){ errBox.textContent='Sila isi Tarikh Mula dan Tarikh Kembali.'; errBox.classList.add('show'); return; }
+      if (tarikhMula > tarikhKembali){ errBox.textContent='Tarikh Kembali mesti sama atau selepas Tarikh Mula.'; errBox.classList.add('show'); return; }
+      if (!masaMula){ errBox.textContent='Sila isi Masa Mula.'; errBox.classList.add('show'); return; }
+      if (masaTamat && masaTamat <= masaMula){ errBox.textContent='Masa Tamat mesti selepas Masa Mula.'; errBox.classList.add('show'); return; }
+      if (!destinasi){ errBox.textContent='Sila isi Destinasi.'; errBox.classList.add('show'); return; }
+      if (!tujuan){ errBox.textContent='Sila isi Tujuan.'; errBox.classList.add('show'); return; }
+
+      var btn = this;
+      btn.disabled = true; btn.textContent = 'Menjadualkan...';
+      try {
+        var res = await apiPost('adminCreateBooking', {
+          pemandu: pemandu, kenderaan: kenderaan, tarikhMula: tarikhMula, tarikhKembali: tarikhKembali,
+          masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
+          nama: nama, bahagian: bahagian, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
+        });
+        btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
+        if (res.ok){
+          showToast('Jadual pemandu berjaya dicipta.', false);
+          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_catatan'].forEach(function(id){
+            document.getElementById(id).value = '';
+          });
+          toggleScheduleMasaTamat();
+          loadHistory();
+        } else {
+          errBox.textContent = res.message; errBox.classList.add('show');
+        }
+      } catch (err) {
+        btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
+        errBox.textContent = 'Ralat: '+err.message; errBox.classList.add('show');
+      }
+    });
 
     function openDrawer(){
       document.getElementById('sidebar').classList.add('open');
