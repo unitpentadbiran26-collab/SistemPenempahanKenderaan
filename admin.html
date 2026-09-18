@@ -90,6 +90,8 @@
   tr:last-child td{border-bottom:none;}
   tr:hover td{background:rgba(212,168,67,0.03);}
   .field{margin-bottom:14px;}
+  .field-row{display:flex;gap:10px;}
+  .field-row .field{flex:1;}
   .field label{display:block;font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;}
   .field input,.field select{width:100%;border:1px solid var(--mist);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--mist-2);}
   .pin-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;}
@@ -100,6 +102,11 @@
   .pin-card input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,168,67,0.15);}
   .pin-error{color:var(--coral);font-size:12.5px;margin-bottom:10px;min-height:16px;}
   .empty-state{text-align:center;color:var(--ink-dim);padding:40px 20px;border:1px dashed var(--mist);border-radius:var(--radius);font-size:13.5px;}
+  .form-error{background:rgba(224,92,92,0.1);color:var(--coral);border:1px solid rgba(224,92,92,0.3);border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px;display:none;}
+  .form-error.show{display:block;}
+  .unavail-item{background:var(--paper);border:1px solid var(--mist);border-radius:10px;padding:14px 16px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;}
+  .unavail-name{font-weight:700;font-size:13.5px;color:var(--ink);}
+  .unavail-meta{font-size:12px;color:var(--ink-dim);margin-top:4px;}
   .filters{display:flex;gap:8px;margin:10px 0 14px;flex-wrap:wrap;}
   .filters select{border:1px solid var(--mist);border-radius:8px;padding:7px 10px;font-size:13px;font-family:inherit;background:var(--paper-2);color:var(--ink);}
   .filters select:focus{outline:none;border-color:var(--gold);}
@@ -158,6 +165,8 @@
     th,td{padding:8px 8px;}
     .filters select{padding:5px 8px;font-size:12px;flex:1;min-width:120px;}
     .pin-card{padding:26px 20px;}
+    .field-row{flex-direction:column;gap:0;}
+    .unavail-item{flex-direction:column;align-items:stretch;}
     .history-table-wrap{display:none;}
     .history-cards{display:flex;}
   }
@@ -198,6 +207,7 @@
       <nav class="topbar-nav">
         <a href="#" class="active" id="nav-pending">Menunggu Kelulusan</a>
         <a href="#" id="nav-semua">Semua Permohonan</a>
+        <a href="#" id="nav-pemandu">Uruskan Pemandu</a>
       </nav>
       <div class="topbar-right">
         <button class="btn-admin" id="notifBtn" style="background:var(--paper-2);color:var(--ink-dim);border:1px solid var(--mist);" title="Status notifikasi">&#128276; <span id="notifBtnLabel">Notifikasi</span></button>
@@ -218,6 +228,10 @@
           <button class="sidebar-item" id="sb-semua">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" stroke="currentColor" stroke-width="1.8"/><rect x="9" y="3" width="6" height="4" rx="1" stroke="currentColor" stroke-width="1.8"/></svg>
             Semua Permohonan
+          </button>
+          <button class="sidebar-item" id="sb-pemandu">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/></svg>
+            Uruskan Pemandu
           </button>
         </div>
         <div class="sidebar-section">
@@ -262,6 +276,31 @@
             </div>
           </div>
         </div>
+
+        <div id="page-pemandu" style="display:none;">
+          <div class="page-header"><h2>Uruskan Pemandu</h2><p>Tandakan pemandu tidak available secara manual (cuti, kereta servis, dsb.)</p></div>
+
+          <div class="card" style="padding:20px;margin-bottom:20px;max-width:560px;">
+            <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Tandakan Tidak Available</div>
+            <div class="form-error" id="unavailError"></div>
+            <div class="field">
+              <label>Pemandu</label>
+              <select id="ua_pemandu"><option value="">-- Pilih Pemandu --</option></select>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Tarikh Mula</label><input type="date" id="ua_tarikhMula"></div>
+              <div class="field"><label>Tarikh Tamat</label><input type="date" id="ua_tarikhTamat"></div>
+            </div>
+            <div class="field">
+              <label>Sebab (pilihan)</label>
+              <input type="text" id="ua_sebab" placeholder="Contoh: Cuti tahunan / Kenderaan servis">
+            </div>
+            <button class="btn btn-primary" id="ua_submitBtn" style="width:100%;">Tandakan Tidak Available</button>
+          </div>
+
+          <div class="page-header" style="margin-bottom:14px;"><h2 style="font-size:16px;">Tempoh Tidak Available Semasa/Akan Datang</h2></div>
+          <div id="unavailList"><div class="empty-state">Memuatkan...</div></div>
+        </div>
       </main>
     </div>
   </div>
@@ -272,7 +311,7 @@
     // ====================== KONFIGURASI - WAJIB TUKAR ======================
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
-    const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 6589 V','SAB 1489 M','SB 9465 A'];
+    const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 1489 M','SB 9465 A'];
     // =========================================================================
 
     var allBookings = [];
@@ -482,15 +521,92 @@
     function showAdminPage(page){
       document.getElementById('page-pending').style.display = page==='pending'?'block':'none';
       document.getElementById('page-semua').style.display = page==='semua'?'block':'none';
+      document.getElementById('page-pemandu').style.display = page==='pemandu'?'block':'none';
       document.getElementById('sb-pending').className='sidebar-item'+(page==='pending'?' active':'');
       document.getElementById('sb-semua').className='sidebar-item'+(page==='semua'?' active':'');
+      document.getElementById('sb-pemandu').className='sidebar-item'+(page==='pemandu'?' active':'');
       document.getElementById('nav-pending').className=page==='pending'?'active':'';
       document.getElementById('nav-semua').className=page==='semua'?'active':'';
+      document.getElementById('nav-pemandu').className=page==='pemandu'?'active':'';
+      if (page==='pemandu') loadUnavailList();
     }
     document.getElementById('sb-pending').addEventListener('click',function(){ showAdminPage('pending'); closeDrawer(); });
     document.getElementById('sb-semua').addEventListener('click',function(){ showAdminPage('semua'); closeDrawer(); });
+    document.getElementById('sb-pemandu').addEventListener('click',function(){ showAdminPage('pemandu'); closeDrawer(); });
     document.getElementById('nav-pending').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pending'); });
     document.getElementById('nav-semua').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('semua'); });
+    document.getElementById('nav-pemandu').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pemandu'); });
+
+    // ====================== URUSKAN PEMANDU (TIDAK AVAILABLE MANUAL) ======================
+    function initUnavailForm(){
+      var sel = document.getElementById('ua_pemandu');
+      sel.innerHTML = '<option value="">-- Pilih Pemandu --</option>' +
+        DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+    }
+
+    async function loadUnavailList(){
+      var el = document.getElementById('unavailList');
+      el.innerHTML = '<div class="empty-state">Memuatkan...</div>';
+      try {
+        var rows = await apiGet('getUnavailablePeriods', { pin: ADMIN_PIN_VALUE });
+        if (!rows.length){ el.innerHTML = '<div class="empty-state">Tiada tempoh tidak available direkodkan.</div>'; return; }
+        el.innerHTML = rows.map(function(r){
+          return '<div class="unavail-item">' +
+            '<div><div class="unavail-name">'+escapeHtml(r.pemandu)+'</div>' +
+            '<div class="unavail-meta">'+escapeHtml(r.tarikhMula)+' &rarr; '+escapeHtml(r.tarikhTamat)+' &middot; '+escapeHtml(r.sebab)+'</div></div>' +
+            '<button class="btn btn-danger btn-sm unavail-cancel-btn" data-id="'+escapeHtml(r.id)+'">Batalkan</button>' +
+            '</div>';
+        }).join('');
+        var cancelBtns = el.querySelectorAll('.unavail-cancel-btn');
+        for (var i=0;i<cancelBtns.length;i++){
+          cancelBtns[i].addEventListener('click', async function(){
+            var id = this.getAttribute('data-id');
+            this.disabled = true; this.textContent = 'Membatalkan...';
+            try {
+              var res = await apiPost('removeUnavailable', { id: id, pin: ADMIN_PIN_VALUE });
+              if (res.ok){ showToast('Tempoh dibatalkan.', false); loadUnavailList(); }
+              else { showToast(res.message, true); this.disabled = false; this.textContent = 'Batalkan'; }
+            } catch(err) { showToast('Ralat: '+err.message, true); this.disabled = false; this.textContent = 'Batalkan'; }
+          });
+        }
+      } catch (err) {
+        el.innerHTML = '<div class="empty-state">Ralat: '+escapeHtml(err.message)+'</div>';
+      }
+    }
+
+    document.getElementById('ua_submitBtn').addEventListener('click', async function(){
+      var errBox = document.getElementById('unavailError');
+      errBox.classList.remove('show');
+      var pemandu = document.getElementById('ua_pemandu').value;
+      var tarikhMula = document.getElementById('ua_tarikhMula').value;
+      var tarikhTamat = document.getElementById('ua_tarikhTamat').value;
+      var sebab = document.getElementById('ua_sebab').value.trim();
+
+      if (!pemandu){ errBox.textContent='Sila pilih pemandu.'; errBox.classList.add('show'); return; }
+      if (!tarikhMula || !tarikhTamat){ errBox.textContent='Sila isi Tarikh Mula dan Tarikh Tamat.'; errBox.classList.add('show'); return; }
+      if (tarikhMula > tarikhTamat){ errBox.textContent='Tarikh Tamat mesti sama atau selepas Tarikh Mula.'; errBox.classList.add('show'); return; }
+
+      var btn = this;
+      btn.disabled = true; btn.textContent = 'Menyimpan...';
+      try {
+        var res = await apiPost('setDriverUnavailable', { pemandu:pemandu, tarikhMula:tarikhMula, tarikhTamat:tarikhTamat, sebab:sebab, pin: ADMIN_PIN_VALUE });
+        btn.disabled = false; btn.textContent = 'Tandakan Tidak Available';
+        if (res.ok){
+          showToast('Pemandu ditandakan tidak available.', false);
+          document.getElementById('ua_pemandu').value='';
+          document.getElementById('ua_tarikhMula').value='';
+          document.getElementById('ua_tarikhTamat').value='';
+          document.getElementById('ua_sebab').value='';
+          loadUnavailList();
+        } else {
+          errBox.textContent = res.message; errBox.classList.add('show');
+        }
+      } catch (err) {
+        btn.disabled = false; btn.textContent = 'Tandakan Tidak Available';
+        errBox.textContent = 'Ralat: '+err.message; errBox.classList.add('show');
+      }
+    });
+    initUnavailForm();
 
     function openDrawer(){
       document.getElementById('sidebar').classList.add('open');
@@ -579,7 +695,7 @@
         html+='<option value="">-- No. Kenderaan --</option>';
         for(var k=0;k<KENDERAAN.length;k++){
           html+='<option value="'+escapeHtml(KENDERAAN[k])+'">'+escapeHtml(KENDERAAN[k])+'</option>';
-        } 
+        }
         html+='</select>';
         html+='<button class="btn btn-primary btn-sm approve-btn">&#10003; Luluskan</button>';
         html+='<button class="btn btn-danger btn-sm reject-toggle-btn">&#10007; Tolak</button>';
