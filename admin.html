@@ -300,8 +300,9 @@
             <div class="field"><label>Tujuan</label><input type="text" id="sc_tujuan" placeholder="Contoh: Hantar dokumen ke Ibu Pejabat"></div>
             <div class="field-row">
               <div class="field"><label>Untuk (Nama/Unit) <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Unit Logistik"></div>
-              <div class="field"><label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_bahagian" placeholder="Contoh: Khidmat Pengurusan"></div>
+              <div class="field"><label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="sc_bahagian"><option value="">-- Pilih Bahagian --</option></select></div>
             </div>
+            <div class="field"><label>No. Phone Pemandu <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="tel" id="sc_noPhone" placeholder="Contoh: 019-1234567"></div>
             <div class="field"><label>Catatan <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_catatan" placeholder="Nota tambahan (jika ada)"></div>
             <button class="btn btn-primary" id="sc_submitBtn" style="width:100%;">Jadualkan Pemandu</button>
           </div>
@@ -338,6 +339,7 @@
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
     const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 1489 M','SB 9465 A'];
+    const BAHAGIAN_OPTIONS = ['Pejabat Pengurus Besar','Khidmat Pengurusan','Perancangan dan Pembangunan Strategik','Pembangunan Nelayan','Pembangunan Industri Perikanan'];
     // =========================================================================
 
     var allBookings = [];
@@ -575,6 +577,9 @@
       var scK = document.getElementById('sc_kenderaan');
       scK.innerHTML = '<option value="">-- Pilih Kenderaan --</option>' +
         KENDERAAN.map(function(k){ return '<option value="'+k+'">'+k+'</option>'; }).join('');
+      var scB = document.getElementById('sc_bahagian');
+      scB.innerHTML = '<option value="">-- Pilih Bahagian --</option>' +
+        BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
     }
 
     async function loadUnavailList(){
@@ -675,6 +680,7 @@
       var tujuan = document.getElementById('sc_tujuan').value.trim();
       var nama = document.getElementById('sc_nama').value.trim();
       var bahagian = document.getElementById('sc_bahagian').value.trim();
+      var noPhone = document.getElementById('sc_noPhone').value.trim();
       var catatan = document.getElementById('sc_catatan').value.trim();
 
       if (!pemandu){ errBox.textContent='Sila pilih pemandu.'; errBox.classList.add('show'); return; }
@@ -692,12 +698,12 @@
         var res = await apiPost('adminCreateBooking', {
           pemandu: pemandu, kenderaan: kenderaan, tarikhMula: tarikhMula, tarikhKembali: tarikhKembali,
           masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
-          nama: nama, bahagian: bahagian, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
+          nama: nama, bahagian: bahagian, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
         });
         btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
         if (res.ok){
           showToast('Jadual pemandu berjaya dicipta.', false);
-          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_catatan'].forEach(function(id){
+          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
           toggleScheduleMasaTamat();
