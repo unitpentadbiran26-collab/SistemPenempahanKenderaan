@@ -129,7 +129,14 @@
   .driver-mcard-trip{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--mist);font-size:12.5px;color:var(--ink-dim);}
   .driver-mcard-trip b{color:var(--gold-light);font-weight:600;}
   .driver-info-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
-  .driver-info-card{background:var(--paper-2);border:1px solid var(--mist);border-radius:10px;padding:16px 18px;}
+  .driver-info-card{background:var(--paper-2);border:1px solid var(--mist);border-radius:10px;padding:16px 18px;cursor:pointer;transition:border-color .15s;}
+  .driver-info-card:hover{border-color:var(--gold);}
+  .sched-item{background:var(--paper-2);border:1px solid var(--mist);border-radius:9px;padding:12px 14px;margin-bottom:10px;}
+  .sched-item:last-child{margin-bottom:0;}
+  .sched-row{font-size:12px;color:var(--ink-dim);margin-top:5px;display:flex;gap:8px;}
+  .sched-row:first-child{margin-top:0;}
+  .sched-row b{color:var(--ink);font-weight:600;min-width:90px;flex-shrink:0;}
+  .unavail-notice{background:rgba(224,92,92,0.1);border:1px solid rgba(224,92,92,0.3);color:var(--coral);border-radius:8px;padding:10px 14px;font-size:12.5px;margin-bottom:14px;}
   .dic-top{display:flex;align-items:center;justify-content:space-between;gap:10px;}
   .dic-name{font-weight:700;font-size:14.5px;color:var(--ink);}
   .dic-details{margin-top:11px;padding-top:11px;border-top:1px solid var(--mist);}
@@ -303,6 +310,13 @@
     </div>
   </div>
 
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-head"><h2 id="scheduleModalTitle">Jadual Pemandu</h2><button class="modal-close" id="scheduleModalClose">&times;</button></div>
+      <div class="modal-body" id="scheduleModalBody"></div>
+    </div>
+  </div>
+
   <script>
     // ====================== KONFIGURASI - WAJIB TUKAR ======================
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
@@ -383,8 +397,11 @@
         BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
     }
 
-    function renderBookings(bookings){
+    var driverStatusCache = [];
+
+    function renderBookings(bookings, driverStatus){
       bookingsCache = bookings || [];
+      driverStatusCache = driverStatus || [];
       var busy = 0;
       var html = '';
 
@@ -392,19 +409,26 @@
         var trip = bookingsCache.find(function(b){
           return b.pemandu === driver && b.status === 'Diluluskan';
         });
-        var available = !trip;
+        var statusInfo = driverStatusCache.find(function(s){ return s.nama === driver; });
+        var manualUnavail = statusInfo ? statusInfo.manualUnavail : null;
+        var available = !trip && !manualUnavail;
         if (!available) busy++;
 
         var dot = document.getElementById('dot-'+driver.replace(/\s/g,'_'));
         if (dot) dot.className = 'driver-dot ' + (available ? 'available' : 'busy');
 
-        html += '<div class="driver-info-card">';
+        html += '<div class="driver-info-card" data-driver="'+driver+'">';
         html += '<div class="dic-top">';
         html += '<div class="dic-name">' + driver + '</div>';
         html += '<span class="driver-badge ' + (available ? 'badge-available' : 'badge-unavailable') + '">' +
                 (available ? '&#9679; Available' : '&#9679; Tidak Available') + '</span>';
         html += '</div>';
-        if (trip){
+        if (manualUnavail){
+          html += '<div class="dic-details">';
+          html += '<div class="dic-row"><b>Sebab</b>' + manualUnavail.sebab + '</div>';
+          html += '<div class="dic-row"><b>Sehingga</b>' + manualUnavail.tarikhTamat + '</div>';
+          html += '</div>';
+        } else if (trip){
           html += '<div class="dic-details">';
           html += '<div class="dic-row"><b>Masa Mula</b>' + (trip.masaMula||'-') + '</div>';
           html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
@@ -414,6 +438,7 @@
           html += '<div class="dic-row"><b>Tujuan</b>' + (trip.tujuan||'-') + '</div>';
           html += '</div>';
         }
+        html += '<div style="font-size:11px;color:var(--ink-dim);margin-top:10px;">Klik untuk lihat jadual penuh &rarr;</div>';
         html += '</div>';
       });
 
@@ -421,8 +446,53 @@
       document.getElementById('statAvail').textContent = DRIVERS.length - busy;
       document.getElementById('statBusy').textContent = busy;
 
+      var cards = document.querySelectorAll('.driver-info-card');
+      for (var i=0;i<cards.length;i++){
+        cards[i].addEventListener('click', function(){
+          openDriverSchedule(this.getAttribute('data-driver'));
+        });
+      }
+
       renderPendingStrip();
     }
+
+    async function openDriverSchedule(driver){
+      document.getElementById('scheduleModalTitle').textContent = 'Jadual \u2014 ' + driver;
+      var body = document.getElementById('scheduleModalBody');
+      body.innerHTML = '<p style="font-size:12.5px;color:var(--ink-dim);">Memuatkan...</p>';
+      document.getElementById('scheduleModal').classList.add('open');
+      try {
+        var rows = await apiGet('getDriverSchedule', { pemandu: driver });
+        var html = '';
+        var statusInfo = driverStatusCache.find(function(s){ return s.nama === driver; });
+        if (statusInfo && statusInfo.manualUnavail){
+          html += '<div class="unavail-notice">Tidak available: ' + statusInfo.manualUnavail.sebab +
+                  ' (sehingga ' + statusInfo.manualUnavail.tarikhTamat + ')</div>';
+        }
+        if (!rows.length){
+          html += '<p style="font-size:12.5px;color:var(--ink-dim);">Tiada perjalanan akan datang dijadualkan.</p>';
+        } else {
+          rows.forEach(function(r){
+            html += '<div class="sched-item">';
+            html += '<div class="sched-row"><b>Tarikh</b>' + r.tarikhMula + ' &rarr; ' + r.tarikhKembali + '</div>';
+            html += '<div class="sched-row"><b>Masa Mula</b>' + r.masaMula + '</div>';
+            html += '<div class="sched-row"><b>Destinasi</b>' + r.destinasi + '</div>';
+            html += '<div class="sched-row"><b>Tujuan</b>' + r.tujuan + '</div>';
+            html += '<div class="sched-row"><b>No. Kenderaan</b>' + (r.kenderaan||'-') + '</div>';
+            html += '</div>';
+          });
+        }
+        body.innerHTML = html;
+      } catch (err) {
+        body.innerHTML = '<p style="font-size:12.5px;color:var(--coral);">Ralat: ' + err.message + '</p>';
+      }
+    }
+    document.getElementById('scheduleModalClose').addEventListener('click', function(){
+      document.getElementById('scheduleModal').classList.remove('open');
+    });
+    document.getElementById('scheduleModal').addEventListener('click', function(e){
+      if (e.target === this) this.classList.remove('open');
+    });
 
     function renderPendingStrip(){
       var el = document.getElementById('pendingStrip');
@@ -461,7 +531,8 @@
       document.getElementById('dateInput').value = dateStr;
       try {
         var rows = await apiGet('getBookingsForDate', { tarikh: dateStr });
-        renderBookings(rows);
+        var status = await apiGet('getDriverStatus', { tarikh: dateStr });
+        renderBookings(rows, status);
       } catch (err) {
         showToast('Gagal: '+err.message, true);
       }
