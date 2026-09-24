@@ -302,6 +302,8 @@
               <div class="field"><label>Untuk (Nama/Unit) <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Unit Logistik"></div>
               <div class="field"><label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="sc_bahagian"><option value="">-- Pilih Bahagian --</option></select></div>
             </div>
+            <div class="field"><label>Emel Pemohon</label><input type="email" id="sc_emel" placeholder="Contoh: nama@jabatan.gov.my"></div>
+            <div style="font-size:11px;color:var(--ink-dim);margin:-8px 0 14px;">Wajib diisi &mdash; sistem akan hantar emel notifikasi "Diluluskan" ke alamat ini.</div>
             <div class="field"><label>No. Phone Pemandu <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="tel" id="sc_noPhone" placeholder="Contoh: 019-1234567"></div>
             <div class="field"><label>Catatan <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_catatan" placeholder="Nota tambahan (jika ada)"></div>
             <button class="btn btn-primary" id="sc_submitBtn" style="width:100%;">Jadualkan Pemandu</button>
@@ -680,6 +682,7 @@
       var tujuan = document.getElementById('sc_tujuan').value.trim();
       var nama = document.getElementById('sc_nama').value.trim();
       var bahagian = document.getElementById('sc_bahagian').value.trim();
+      var emel = document.getElementById('sc_emel').value.trim();
       var noPhone = document.getElementById('sc_noPhone').value.trim();
       var catatan = document.getElementById('sc_catatan').value.trim();
 
@@ -691,6 +694,7 @@
       if (masaTamat && masaTamat <= masaMula){ errBox.textContent='Masa Tamat mesti selepas Masa Mula.'; errBox.classList.add('show'); return; }
       if (!destinasi){ errBox.textContent='Sila isi Destinasi.'; errBox.classList.add('show'); return; }
       if (!tujuan){ errBox.textContent='Sila isi Tujuan.'; errBox.classList.add('show'); return; }
+      if (!emel){ errBox.textContent='Sila isi Emel Pemohon supaya notifikasi boleh dihantar.'; errBox.classList.add('show'); return; }
 
       var btn = this;
       btn.disabled = true; btn.textContent = 'Menjadualkan...';
@@ -698,12 +702,12 @@
         var res = await apiPost('adminCreateBooking', {
           pemandu: pemandu, kenderaan: kenderaan, tarikhMula: tarikhMula, tarikhKembali: tarikhKembali,
           masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
-          nama: nama, bahagian: bahagian, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
+          nama: nama, bahagian: bahagian, emel: emel, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
         });
         btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
         if (res.ok){
           showToast('Jadual pemandu berjaya dicipta.', false);
-          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_noPhone','sc_catatan'].forEach(function(id){
+          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
           toggleScheduleMasaTamat();
@@ -806,6 +810,7 @@
           html+='<option value="'+escapeHtml(KENDERAAN[k])+'">'+escapeHtml(KENDERAAN[k])+'</option>';
         }
         html+='</select>';
+        html+='<input type="tel" class="kenderaan-input" id="phone-'+escapeHtml(b.id)+'" placeholder="No. Phone Pemandu (pilihan)" style="width:170px;">';
         html+='<button class="btn btn-primary btn-sm approve-btn">&#10003; Luluskan</button>';
         html+='<button class="btn btn-danger btn-sm reject-toggle-btn">&#10007; Tolak</button>';
         html+='</div>';
@@ -821,7 +826,7 @@
         (function(card){
           var id=card.getAttribute('data-id');
           card.querySelector('.approve-btn').addEventListener('click',function(){
-            approve(id, document.getElementById('driver-'+id).value, document.getElementById('kenderaan-'+id).value, card);
+            approve(id, document.getElementById('driver-'+id).value, document.getElementById('kenderaan-'+id).value, document.getElementById('phone-'+id).value, card);
           });
           card.querySelector('.reject-toggle-btn').addEventListener('click',function(){
             document.getElementById('reject-'+id).classList.toggle('show');
@@ -833,14 +838,15 @@
       }
     }
 
-    async function approve(id,pemandu,kenderaan,card){
+    async function approve(id,pemandu,kenderaan,noPhonePemandu,card){
       if(!pemandu){ showToast('Sila pilih pemandu terlebih dahulu.',true); return; }
       kenderaan=(kenderaan||'').trim();
       if(!kenderaan){ showToast('Sila isi No. Kenderaan terlebih dahulu.',true); return; }
+      noPhonePemandu=(noPhonePemandu||'').trim();
       var btns=card.querySelectorAll('button');
       for(var i=0;i<btns.length;i++) btns[i].disabled=true;
       try {
-        var res = await apiPost('approveBooking', { id: id, pemandu: pemandu, kenderaan: kenderaan, pin: ADMIN_PIN_VALUE });
+        var res = await apiPost('approveBooking', { id: id, pemandu: pemandu, kenderaan: kenderaan, noPhonePemandu: noPhonePemandu, pin: ADMIN_PIN_VALUE });
         if(res.ok){ showToast('Diluluskan! Pemandu: '+pemandu,false); loadPending(); loadHistory(); loadDriverStatus(); }
         else{ showToast(res.message,true); for(var i2=0;i2<btns.length;i2++) btns[i2].disabled=false; }
       } catch(err){
