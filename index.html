@@ -186,6 +186,9 @@
     .card > div{padding:10px !important;}
     .driver-info-cards{grid-template-columns:1fr;gap:10px;}
     .freq-card-head{margin-bottom:12px;}
+    .freq-card-head > div{width:100%;justify-content:space-between;}
+    .freq-toggle{flex:1;}
+    .freq-toggle .freq-btn{flex:1;padding:6px 8px;font-size:11.5px;}
     .freq-name{width:88px;font-size:11.5px;}
     .btn{padding:7px 12px;font-size:12px;}
     .field label{font-size:9.5px;}
@@ -250,9 +253,16 @@
         <div class="card" style="padding:20px;margin-bottom:20px;">
           <div class="freq-card-head">
             <h3>Kekerapan Pemandu Jalan</h3>
-            <div class="freq-toggle">
-              <button class="freq-btn active" id="freqWeekBtn" data-period="week">Mingguan</button>
-              <button class="freq-btn" id="freqMonthBtn" data-period="month">Bulanan</button>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+              <div class="freq-toggle">
+                <button class="freq-btn active" id="freqWeekBtn" data-period="week">Mingguan</button>
+                <button class="freq-btn" id="freqMonthBtn" data-period="month">Bulanan</button>
+                <button class="freq-btn" id="freqYearBtn" data-period="year">Tahunan</button>
+              </div>
+              <div class="freq-toggle">
+                <button class="freq-btn active" id="viewBarBtn" data-view="bar">&#128202; Bar</button>
+                <button class="freq-btn" id="viewPieBtn" data-view="pie">&#127857; Pie</button>
+              </div>
             </div>
           </div>
           <div id="freqList"><p style="font-size:12.5px;color:var(--ink-dim);">Memuatkan...</p></div>
@@ -535,26 +545,93 @@
     }
 
     var currentFreqPeriod = 'week';
+    var currentChartView = 'bar';
+    var freqDataCache = [];
+    var FREQ_COLORS = ['#D4A843','#4FC3C0','#E05C5C','#5B9BD5','#9B7ED1','#4CAF82','#E8955A'];
+
     async function loadFrequency(period){
       currentFreqPeriod = period;
       document.getElementById('freqWeekBtn').classList.toggle('active', period === 'week');
       document.getElementById('freqMonthBtn').classList.toggle('active', period === 'month');
+      document.getElementById('freqYearBtn').classList.toggle('active', period === 'year');
       var el = document.getElementById('freqList');
+      el.innerHTML = '<p style="font-size:12.5px;color:var(--ink-dim);">Memuatkan...</p>';
       try {
         var rows = await apiGet('getDriverFrequency', { period: period });
-        var maxCount = Math.max.apply(null, rows.map(function(r){ return r.kekerapan; }).concat([1]));
-        el.innerHTML = rows.map(function(r){
-          var pct = Math.round((r.kekerapan / maxCount) * 100);
-          return '<div class="freq-row"><div class="freq-name">' + r.nama + '</div>' +
-                 '<div class="freq-bar-wrap"><div class="freq-bar" style="width:' + pct + '%;"></div></div>' +
-                 '<div class="freq-count">' + r.kekerapan + 'x</div></div>';
-        }).join('');
+        freqDataCache = rows || [];
+        renderFreqChart();
       } catch (err) {
         el.innerHTML = '<p style="font-size:12.5px;color:var(--coral);">Gagal memuatkan: ' + err.message + '</p>';
       }
     }
+
+    function setChartView(view){
+      currentChartView = view;
+      document.getElementById('viewBarBtn').classList.toggle('active', view === 'bar');
+      document.getElementById('viewPieBtn').classList.toggle('active', view === 'pie');
+      renderFreqChart();
+    }
+
+    function renderFreqChart(){
+      var el = document.getElementById('freqList');
+      var rows = freqDataCache;
+      if (!rows || !rows.length){
+        el.innerHTML = '<p style="font-size:12.5px;color:var(--ink-dim);">Tiada data.</p>';
+        return;
+      }
+      var total = rows.reduce(function(s,r){ return s + r.kekerapan; }, 0);
+      if (currentChartView === 'pie') {
+        el.innerHTML = buildPieChartHtml(rows, total);
+      } else {
+        var maxCount = Math.max.apply(null, rows.map(function(r){ return r.kekerapan; }).concat([1]));
+        el.innerHTML = rows.map(function(r,i){
+          var pct = Math.round((r.kekerapan / maxCount) * 100);
+          var color = FREQ_COLORS[i % FREQ_COLORS.length];
+          return '<div class="freq-row"><div class="freq-name">' + r.nama + '</div>' +
+                 '<div class="freq-bar-wrap"><div class="freq-bar" style="width:' + pct + '%;background:' + color + ';"></div></div>' +
+                 '<div class="freq-count">' + r.kekerapan + 'x</div></div>';
+        }).join('');
+      }
+    }
+
+    function buildPieChartHtml(rows, total){
+      if (!total) {
+        return '<p style="font-size:12.5px;color:var(--ink-dim);">Tiada perjalanan direkodkan dalam tempoh ini.</p>';
+      }
+      var r = 50, cx = 60, cy = 60, sw = 22;
+      var circumference = 2 * Math.PI * r;
+      var offset = 0;
+      var circles = '';
+      var legend = '';
+      rows.forEach(function(row, i){
+        var color = FREQ_COLORS[i % FREQ_COLORS.length];
+        var pct = row.kekerapan / total;
+        if (row.kekerapan > 0) {
+          var segLen = pct * circumference;
+          circles += '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+sw+'" ' +
+            'stroke-dasharray="'+segLen.toFixed(2)+' '+(circumference-segLen).toFixed(2)+'" ' +
+            'stroke-dashoffset="'+(-offset).toFixed(2)+'" transform="rotate(-90 '+cx+' '+cy+')">' +
+            '<title>'+row.nama+': '+row.kekerapan+'x ('+Math.round(pct*100)+'%)</title></circle>';
+          offset += segLen;
+        }
+        legend += '<div style="display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink);margin-bottom:7px;">' +
+          '<span style="width:11px;height:11px;border-radius:3px;background:'+color+';flex-shrink:0;"></span>' +
+          '<span style="flex:1;">'+row.nama+'</span>' +
+          '<span style="font-weight:700;color:'+color+';">'+row.kekerapan+'x</span>' +
+          '<span style="color:var(--ink-dim);width:38px;text-align:right;">'+Math.round(pct*100)+'%</span>' +
+          '</div>';
+      });
+      return '<div style="display:flex;gap:28px;flex-wrap:wrap;align-items:center;">' +
+        '<svg width="140" height="140" viewBox="0 0 120 120" style="flex-shrink:0;">' + circles + '</svg>' +
+        '<div style="flex:1;min-width:180px;">' + legend + '</div>' +
+        '</div>';
+    }
+
     document.getElementById('freqWeekBtn').addEventListener('click', function(){ loadFrequency('week'); });
     document.getElementById('freqMonthBtn').addEventListener('click', function(){ loadFrequency('month'); });
+    document.getElementById('freqYearBtn').addEventListener('click', function(){ loadFrequency('year'); });
+    document.getElementById('viewBarBtn').addEventListener('click', function(){ setChartView('bar'); });
+    document.getElementById('viewPieBtn').addEventListener('click', function(){ setChartView('pie'); });
 
     async function loadDate(dateStr){
       currentDate = dateStr;
