@@ -299,7 +299,7 @@
           </div>
           <div class="field"><label>Nama Pemohon</label><input type="text" id="f_nama" placeholder="Nama penuh" required></div>
           <div class="field"><label>Bahagian</label><select id="f_bahagian" required><option value="">-- Pilih Bahagian --</option></select></div>
-          <div class="field"><label>Unit</label><input type="text" id="f_unit" placeholder="Contoh: Unit Pentadbiran"></div>
+          <div class="field"><label>Unit</label><select id="f_unit"></select></div>   
           <div class="field"><label>Emel</label><input type="email" id="f_emel" required></div>
           <div class="field"><label>Destinasi Perjalanan</label><input type="text" id="f_destinasi" placeholder="Contoh: Kota Kinabalu" required></div>
           <div class="field"><label>Tujuan Perjalanan</label><textarea id="f_tujuan" placeholder="Huraikan tujuan perjalanan..." required></textarea></div>
@@ -334,6 +334,22 @@
 
   <script>
     // ====================== KONFIGURASI - WAJIB TUKAR ======================
+    const UNIT_GROUPS = [
+      { bahagian: 'Pejabat Pengurus Besar', units: [ 'Unit Pengurusan Petroleum','Unit Audit Dalam','Unit Pemasaran','Unit Perundangan & Penguatkuasaan','Unit Komunikasi Korporat','Unit Kejuruteraan' ]},
+      { bahagian: 'Bahagian Khidmat Pengurusan', units: [ 'Unit Pentadbiran','Unit Akaun & Kewangan','Unit Sumber Manusia','Unit Teknologi Maklumat','Unit Pengurusan Harta' ]},
+      { bahagian: 'Bahagian Perancangan dan Pembangunan Strategik', units: [ 'Unit Perancangan Pembangunan','Unit Pelaburan','Unit Pemantauan' ]},
+      { bahagian: 'Bahagian Pembangunan Nelayan', units: [ 'Unit Pembangunan Kredit','Unit Pengurusan Kompleks']}
+      ];
+
+    function buildUnitOptionsHtml(){
+      var html = '<option value="">-- Pilih Unit --</option>';
+      UNIT_GROUPS.forEach(function(g){
+        html += '<optgroup label="'+g.bahagian+'">';
+        g.units.forEach(function(u){ html += '<option value="'+u+'">'+u+'</options>'; });
+        html += '</optgroup>';
+      });
+      return html;
+    }
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
     const BAHAGIAN_OPTIONS = ['Pejabat Pengurus Besar','Khidmat Pengurusan','Perancangan dan Pembangunan Strategik','Pembangunan Nelayan','Pembangunan Industri Perikanan'];
@@ -429,6 +445,7 @@
       var sel = document.getElementById('f_bahagian');
       sel.innerHTML = '<option value="">-- Pilih Bahagian --</option>' +
         BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
+      document.getElementById('f_unit').innerHTML = buildUnitOptionsHtml();
     }
 
     var driverStatusCache = [];
