@@ -299,8 +299,12 @@
             <div class="field"><label>Destinasi</label><input type="text" id="sc_destinasi" placeholder="Contoh: Kota Kinabalu"></div>
             <div class="field"><label>Tujuan</label><input type="text" id="sc_tujuan" placeholder="Contoh: Hantar dokumen ke Ibu Pejabat"></div>
             <div class="field-row">
-              <div class="field"><label>Untuk (Nama/Unit) <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Unit Logistik"></div>
-              <div class="field"><label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="sc_bahagian"><option value="">-- Pilih Bahagian --</option></select></div>
+              <div class="field"><label>Nama Pemohon <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Ahmad bin Ali"></div>
+              <div class="field"><label>Unit <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_unit" placeholder="Contoh: Unit Logistik"></div>
+            </div>
+            <div class="field">
+              <label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label>
+              <select id="sc_bahagian"><option value="">-- Pilih Bahagian --</option></select>
             </div>
             <div class="field"><label>Emel Pemohon</label><input type="email" id="sc_emel" placeholder="Contoh: nama@jabatan.gov.my"></div>
             <div style="font-size:11px;color:var(--ink-dim);margin:-8px 0 14px;">Wajib diisi &mdash; sistem akan hantar emel notifikasi "Diluluskan" ke alamat ini.</div>
@@ -681,6 +685,7 @@
       var destinasi = document.getElementById('sc_destinasi').value.trim();
       var tujuan = document.getElementById('sc_tujuan').value.trim();
       var nama = document.getElementById('sc_nama').value.trim();
+      var unit = document.getElementById('sc_unit').value.trim();
       var bahagian = document.getElementById('sc_bahagian').value.trim();
       var emel = document.getElementById('sc_emel').value.trim();
       var noPhone = document.getElementById('sc_noPhone').value.trim();
@@ -702,12 +707,12 @@
         var res = await apiPost('adminCreateBooking', {
           pemandu: pemandu, kenderaan: kenderaan, tarikhMula: tarikhMula, tarikhKembali: tarikhKembali,
           masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
-          nama: nama, bahagian: bahagian, emel: emel, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
+          nama: nama, unit: unit, bahagian: bahagian, emel: emel, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
         });
         btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
         if (res.ok){
           showToast('Jadual pemandu berjaya dicipta.', false);
-          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
+          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_unit','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
           toggleScheduleMasaTamat();
