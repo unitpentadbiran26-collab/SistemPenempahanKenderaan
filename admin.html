@@ -300,7 +300,7 @@
             <div class="field"><label>Tujuan</label><input type="text" id="sc_tujuan" placeholder="Contoh: Hantar dokumen ke Ibu Pejabat"></div>
             <div class="field-row">
               <div class="field"><label>Nama Pemohon <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_nama" placeholder="Contoh: Ahmad bin Ali"></div>
-              <div class="field"><label>Unit <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="sc_unit"></select></div>
+              <div class="field"><label>Unit <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="sc_unit"><option value="">-- Pilih Bahagian dahulu --</option></select></div>
             </div>
             <div class="field">
               <label>Bahagian <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label>
@@ -346,21 +346,28 @@
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
     const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 1489 M','SB 9465 A'];
     const BAHAGIAN_OPTIONS = ['Pejabat Pengurus Besar','Khidmat Pengurusan','Perancangan dan Pembangunan Strategik','Pembangunan Nelayan','Pembangunan Industri Perikanan'];
-    const UNIT_GROUPS = [
-      { bahagian: 'Pejabat Pengurus Besar', units: [ 'Unit Pengurusan Petroleum','Unit Audit Dalam','Unit Pemasaran','Unit Perundangan & Penguatkuasaan','Unit Komunikasi Korporat','Unit Kejuruteraan' ]},
-      { bahagian: 'Bahagian Khidmat Pengurusan', units: [ 'Unit Pentadbiran','Unit Akaun & Kewangan','Unit Sumber Manusia','Unit Teknologi Maklumat','Unit Pengurusan Harta' ]},
-      { bahagian: 'Bahagian Perancangan dan Pembangunan Strategik', units: [ 'Unit Perancangan Pembangunan','Unit Pelaburan','Unit Pemantauan' ]},
-      { bahagian: 'Bahagian Pembangunan Nelayan', units: [ 'Unit Pembangunan Kredit','Unit Pengurusan Kompleks']}
-      ];
-
-    function buildUnitOptionsHtml(){
-      var html = '<option value="">-- Pilih Unit --</option>';
-      UNIT_GROUPS.forEach(function(g){
-        html += '<optgroup label="'+g.bahagian+'">';
-        g.units.forEach(function(u){ html += '<option value="'+u+'">'+u+'</options>'; });
-        html += '</optgroup>';
-      });
-      return html;
+    const UNIT_GROUPS = {
+      'Pejabat Pengurus Besar': ['Unit Pengurusan Petroleum','Unit Audit Dalam','Unit Pemasaran','Unit Perundangan dan Penguatkuasaan','Unit Komunikasi Korporat','Unit Kejuruteraan'],
+      'Khidmat Pengurusan': ['Unit Pentadbiran','Unit Akaun dan Kewangan','Unit Sumber Manusia','Unit Teknologi Maklumat','Unit Pengurusan Harta'],
+      'Perancangan dan Pembangunan Strategik': ['Unit Perancangan Pembangunan','Unit Pelaburan','Unit Pemantauan'],
+      'Pembangunan Nelayan': ['Unit Pengurusan Kredit','Unit Pengurusan Kompleks'],
+      'Pembangunan Industri Perikanan': [] // unit-unit bahagian ini berada di luar Ibu Pejabat; tiada unit di Ibu Pejabat
+    };
+    function populateUnitSelect(selectEl, bahagian){
+      if (!bahagian){
+        selectEl.innerHTML = '<option value="">-- Pilih Bahagian dahulu --</option>';
+        selectEl.disabled = true;
+        return;
+      }
+      var units = UNIT_GROUPS[bahagian] || [];
+      if (units.length === 0){
+        selectEl.innerHTML = '<option value="">(Tiada Unit — Bahagian ini tiada unit di Ibu Pejabat)</option>';
+        selectEl.disabled = true;
+      } else {
+        selectEl.innerHTML = '<option value="">-- Pilih Unit --</option>' +
+          units.map(function(u){ return '<option value="'+u+'">'+u+'</option>'; }).join('');
+        selectEl.disabled = false;
+      }
     }
     // =========================================================================
 
@@ -602,7 +609,10 @@
       var scB = document.getElementById('sc_bahagian');
       scB.innerHTML = '<option value="">-- Pilih Bahagian --</option>' +
         BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
-      document.getElementById('sc_unit').innerHTML = buildUnitOptionsHtml();
+      populateUnitSelect(document.getElementById('sc_unit'), '');
+      scB.addEventListener('change', function(){
+        populateUnitSelect(document.getElementById('sc_unit'), this.value);
+      });
     }
 
     async function loadUnavailList(){
@@ -732,6 +742,7 @@
           ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_unit','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
+          populateUnitSelect(document.getElementById('sc_unit'), '');
           toggleScheduleMasaTamat();
           loadHistory();
         } else {
