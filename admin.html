@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Panel Admin - Sistem Penempahan Kenderaan</title>
+  <title>Panel Admin - SPP</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
@@ -177,7 +177,7 @@
 
     <div id="pinGate" style="min-height:100vh;padding:40px 20px;display:flex;align-items:flex-start;justify-content:center;background:var(--navy);">
     <div class="card pin-card">
-      <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--ink-dim);font-size:13px;margin-bottom:16px">&#8592; kembali ke Sistem Tempahan</a>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;color:var(--ink-dim);font-size:13px;margin-bottom:16px">&#8592; kembali ke SPP</a>
       <div class="brand-mark" style="margin:0 auto 16px;background:transparent;overflow:hidden;">
         <img src="logo.png" width="34" height="34" style="object-fit:contain;">
       </div>
@@ -201,17 +201,17 @@
         </div>
         <div>
           <div class="brand-name">Panel Admin</div>
-          <div class="brand-sub">Sistem Penempahan Kenderaan</div>
+          <div class="brand-sub">SPP</div>
         </div>
       </div>
       <nav class="topbar-nav">
         <a href="#" class="active" id="nav-pending">Menunggu Kelulusan</a>
         <a href="#" id="nav-semua">Semua Permohonan</a>
-        <a href="#" id="nav-pemandu">Uruskan Pemandu</a>
+        <a href="#" id="nav-pemandu">Uruskan PKA</a>
       </nav>
       <div class="topbar-right">
         <button class="btn-admin" id="notifBtn" style="background:var(--paper-2);color:var(--ink-dim);border:1px solid var(--mist);" title="Status notifikasi">&#128276; <span id="notifBtnLabel">Notifikasi</span></button>
-        <a class="btn-admin" href="index.html">&#8592; Sistem Tempahan</a>
+        <a class="btn-admin" href="index.html">&#8592; SPP</a>
       </div>
     </div>
 
@@ -231,25 +231,25 @@
           </button>
           <button class="sidebar-item" id="sb-pemandu">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/></svg>
-            Uruskan Pemandu
+            Uruskan PKA
           </button>
         </div>
         <div class="sidebar-section">
-          <div class="sidebar-label">Senarai Pemandu</div>
+          <div class="sidebar-label">Senarai PKA</div>
           <div id="sidebarDrivers"></div>
         </div>
       </aside>
 
       <main class="main-content">
         <div id="page-pending">
-          <div class="page-header"><h2>Menunggu Kelulusan</h2><p>Semak dan luluskan permohonan pemandu yang masuk</p></div>
+          <div class="page-header"><h2>Menunggu Kelulusan</h2><p>Semak dan luluskan permohonan PKA yang masuk</p></div>
           <div id="pendingList"><div class="empty-state">Memuatkan...</div></div>
         </div>
 
         <div id="page-semua" style="display:none;">
-          <div class="page-header"><h2>Semua Permohonan</h2><p>Rekod lengkap semua permohonan pemandu</p></div>
+          <div class="page-header"><h2>Semua Permohonan</h2><p>Rekod lengkap semua permohonan PKA</p></div>
           <div class="filters">
-            <select id="filterPemandu"><option value="">Semua Pemandu</option></select>
+            <select id="filterPemandu"><option value="">Semua PKA</option></select>
             <select id="filterStatus">
               <option value="">Semua Status</option>
               <option value="Menunggu">Menunggu</option>
@@ -261,7 +261,7 @@
           <div class="card history-table-wrap" style="overflow-x:auto;">
             <table>
               <thead>
-                <tr><th>Pemohon</th><th>Bahagian</th><th>Tarikh Mula</th><th>Tarikh Kembali</th><th>Masa</th><th>Destinasi</th><th>Pemandu</th><th>No. Kenderaan</th><th>Status</th><th>Catatan</th><th>Cetak</th><th>Tindakan</th></tr>
+                <tr><th>Pemohon</th><th>Bahagian</th><th>Tarikh Mula</th><th>Tarikh Kembali</th><th>Masa</th><th>Destinasi</th><th>PKA</th><th>No. Kenderaan</th><th>Status</th><th>Catatan</th><th>Cetak</th><th>Tindakan</th></tr>
               </thead>
               <tbody id="historyBody"><tr><td colspan="12" style="text-align:center;color:var(--ink-dim);padding:28px;">Memuatkan...</td></tr></tbody>
             </table>
@@ -278,14 +278,14 @@
         </div>
 
         <div id="page-pemandu" style="display:none;">
-          <div class="page-header"><h2>Uruskan Pemandu</h2><p>Tandakan pemandu tidak available, atau jadualkan perjalanan terus</p></div>
+          <div class="page-header"><h2>Uruskan PKA</h2><p>Tandakan PKA tidak available, atau jadualkan perjalanan terus</p></div>
 
           <div class="card" style="padding:20px;margin-bottom:20px;max-width:560px;">
-            <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Jadualkan Pemandu (Terus Diluluskan)</div>
-            <p style="font-size:12px;color:var(--ink-dim);margin:-8px 0 16px;">Untuk admin susun jadual pemandu terlebih awal, tanpa perlu tunggu sesiapa isi borang "Mohon Pemandu". Tempahan ini terus berstatus Diluluskan.</p>
+            <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Jadualkan PKA (Terus Diluluskan)</div>
+            <p style="font-size:12px;color:var(--ink-dim);margin:-8px 0 16px;">Untuk admin susun jadual PKA terlebih awal, tanpa perlu tunggu sesiapa isi borang "Mohon PKA". Tempahan ini terus berstatus Diluluskan.</p>
             <div class="form-error" id="scheduleError"></div>
             <div class="field-row">
-              <div class="field"><label>Pemandu</label><select id="sc_pemandu"><option value="">-- Pilih Pemandu --</option></select></div>
+              <div class="field"><label>PKA</label><select id="sc_pemandu"><option value="">-- Pilih PKA --</option></select></div>
               <div class="field"><label>No. Kenderaan</label><select id="sc_kenderaan"><option value="">-- Pilih Kenderaan --</option></select></div>
             </div>
             <div class="field-row">
@@ -308,17 +308,17 @@
             </div>
             <div class="field"><label>Emel Pemohon</label><input type="email" id="sc_emel" placeholder="Contoh: nama@jabatan.gov.my"></div>
             <div style="font-size:11px;color:var(--ink-dim);margin:-8px 0 14px;">Wajib diisi &mdash; sistem akan hantar emel notifikasi "Diluluskan" ke alamat ini.</div>
-            <div class="field"><label>No. Phone Pemandu <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="tel" id="sc_noPhone" placeholder="Contoh: 019-1234567"></div>
+            <div class="field"><label>No. Phone PKA <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="tel" id="sc_noPhone" placeholder="Contoh: 019-1234567"></div>
             <div class="field"><label>Catatan <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="text" id="sc_catatan" placeholder="Nota tambahan (jika ada)"></div>
-            <button class="btn btn-primary" id="sc_submitBtn" style="width:100%;">Jadualkan Pemandu</button>
+            <button class="btn btn-primary" id="sc_submitBtn" style="width:100%;">Jadualkan PKA</button>
           </div>
 
           <div class="card" style="padding:20px;margin-bottom:20px;max-width:560px;">
             <div style="font-weight:700;font-size:14.5px;margin-bottom:14px;color:var(--ink);">Tandakan Tidak Available</div>
             <div class="form-error" id="unavailError"></div>
             <div class="field">
-              <label>Pemandu</label>
-              <select id="ua_pemandu"><option value="">-- Pilih Pemandu --</option></select>
+              <label>PKA</label>
+              <select id="ua_pemandu"><option value="">-- Pilih PKA --</option></select>
             </div>
             <div class="field-row">
               <div class="field"><label>Tarikh Mula</label><input type="date" id="ua_tarikhMula"></div>
@@ -526,7 +526,7 @@
       playNotifSound();
       if ('Notification' in window && Notification.permission === 'granted') {
         try {
-          var n = new Notification('Permohonan Baharu \u2014 Sistem Penempahan Kenderaan', {
+          var n = new Notification('Permohonan Baharu \u2014 SPP', {
             body: (booking.nama || 'Pemohon') + ' \u2014 ' + (booking.destinasi || ''),
             tag: 'pending-' + booking.id
           });
@@ -571,7 +571,7 @@
       }).join('');
 
       var filterSel = document.getElementById('filterPemandu');
-      filterSel.innerHTML = '<option value="">Semua Pemandu</option>' + DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
+      filterSel.innerHTML = '<option value="">Semua PKA</option>' + DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
     }
 
     // NAV
@@ -594,14 +594,14 @@
     document.getElementById('nav-semua').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('semua'); });
     document.getElementById('nav-pemandu').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pemandu'); });
 
-    // ====================== URUSKAN PEMANDU (TIDAK AVAILABLE MANUAL) ======================
+    // ====================== URUSKAN PKA (TIDAK AVAILABLE MANUAL) ======================
     function initUnavailForm(){
       var sel = document.getElementById('ua_pemandu');
-      sel.innerHTML = '<option value="">-- Pilih Pemandu --</option>' +
+      sel.innerHTML = '<option value="">-- Pilih PKA --</option>' +
         DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
 
       var scP = document.getElementById('sc_pemandu');
-      scP.innerHTML = '<option value="">-- Pilih Pemandu --</option>' +
+      scP.innerHTML = '<option value="">-- Pilih PKA --</option>' +
         DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
       var scK = document.getElementById('sc_kenderaan');
       scK.innerHTML = '<option value="">-- Pilih Kenderaan --</option>' +
@@ -653,7 +653,7 @@
       var tarikhTamat = document.getElementById('ua_tarikhTamat').value;
       var sebab = document.getElementById('ua_sebab').value.trim();
 
-      if (!pemandu){ errBox.textContent='Sila pilih pemandu.'; errBox.classList.add('show'); return; }
+      if (!pemandu){ errBox.textContent='Sila pilih PKA.'; errBox.classList.add('show'); return; }
       if (!tarikhMula || !tarikhTamat){ errBox.textContent='Sila isi Tarikh Mula dan Tarikh Tamat.'; errBox.classList.add('show'); return; }
       if (tarikhMula > tarikhTamat){ errBox.textContent='Tarikh Tamat mesti sama atau selepas Tarikh Mula.'; errBox.classList.add('show'); return; }
 
@@ -663,7 +663,7 @@
         var res = await apiPost('setDriverUnavailable', { pemandu:pemandu, tarikhMula:tarikhMula, tarikhTamat:tarikhTamat, sebab:sebab, pin: ADMIN_PIN_VALUE });
         btn.disabled = false; btn.textContent = 'Tandakan Tidak Available';
         if (res.ok){
-          showToast('Pemandu ditandakan tidak available.', false);
+          showToast('PKA ditandakan tidak available.', false);
           document.getElementById('ua_pemandu').value='';
           document.getElementById('ua_tarikhMula').value='';
           document.getElementById('ua_tarikhTamat').value='';
@@ -679,7 +679,7 @@
     });
     initUnavailForm();
 
-    // ====================== JADUALKAN PEMANDU (ADMIN TERUS) ======================
+    // ====================== JADUALKAN PKA (ADMIN TERUS) ======================
     function toggleScheduleMasaTamat(){
       var mula = document.getElementById('sc_tarikhMula').value;
       var kembali = document.getElementById('sc_tarikhKembali').value;
@@ -718,7 +718,7 @@
       var noPhone = document.getElementById('sc_noPhone').value.trim();
       var catatan = document.getElementById('sc_catatan').value.trim();
 
-      if (!pemandu){ errBox.textContent='Sila pilih pemandu.'; errBox.classList.add('show'); return; }
+      if (!pemandu){ errBox.textContent='Sila pilih PKA.'; errBox.classList.add('show'); return; }
       if (!kenderaan){ errBox.textContent='Sila pilih no. kenderaan.'; errBox.classList.add('show'); return; }
       if (!tarikhMula || !tarikhKembali){ errBox.textContent='Sila isi Tarikh Mula dan Tarikh Kembali.'; errBox.classList.add('show'); return; }
       if (tarikhMula > tarikhKembali){ errBox.textContent='Tarikh Kembali mesti sama atau selepas Tarikh Mula.'; errBox.classList.add('show'); return; }
@@ -736,9 +736,9 @@
           masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
           nama: nama, unit: unit, bahagian: bahagian, emel: emel, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
         });
-        btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
+        btn.disabled = false; btn.textContent = 'Jadualkan PKA';
         if (res.ok){
-          showToast('Jadual pemandu berjaya dicipta.', false);
+          showToast('Jadual PKA berjaya dicipta.', false);
           ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_unit','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
@@ -749,7 +749,7 @@
           errBox.textContent = res.message; errBox.classList.add('show');
         }
       } catch (err) {
-        btn.disabled = false; btn.textContent = 'Jadualkan Pemandu';
+        btn.disabled = false; btn.textContent = 'Jadualkan PKA';
         errBox.textContent = 'Ralat: '+err.message; errBox.classList.add('show');
       }
     });
@@ -832,7 +832,7 @@
         html+='<div class="pending-info" style="margin-top:6px;"><strong>Tujuan:</strong> '+escapeHtml(b.tujuan)+'</div>';
         html+='<div class="pending-actions">';
         html+='<select class="driver-select" id="driver-'+escapeHtml(b.id)+'">';
-        html+='<option value="">-- Pilih Pemandu --</option>';
+        html+='<option value="">-- Pilih PKA --</option>';
         for(var j=0;j<DRIVERS.length;j++){
           html+='<option value="'+escapeHtml(DRIVERS[j])+'">'+escapeHtml(DRIVERS[j])+'</option>';
         }
@@ -843,7 +843,7 @@
           html+='<option value="'+escapeHtml(KENDERAAN[k])+'">'+escapeHtml(KENDERAAN[k])+'</option>';
         }
         html+='</select>';
-        html+='<input type="tel" class="kenderaan-input" id="phone-'+escapeHtml(b.id)+'" placeholder="No. Phone Pemandu (pilihan)" style="width:170px;">';
+        html+='<input type="tel" class="kenderaan-input" id="phone-'+escapeHtml(b.id)+'" placeholder="No. Phone PKA (pilihan)" style="width:170px;">';
         html+='<button class="btn btn-primary btn-sm approve-btn">&#10003; Luluskan</button>';
         html+='<button class="btn btn-danger btn-sm reject-toggle-btn">&#10007; Tolak</button>';
         html+='</div>';
@@ -872,7 +872,7 @@
     }
 
     async function approve(id,pemandu,kenderaan,noPhonePemandu,card){
-      if(!pemandu){ showToast('Sila pilih pemandu terlebih dahulu.',true); return; }
+      if(!pemandu){ showToast('Sila pilih PKA terlebih dahulu.',true); return; }
       kenderaan=(kenderaan||'').trim();
       if(!kenderaan){ showToast('Sila isi No. Kenderaan terlebih dahulu.',true); return; }
       noPhonePemandu=(noPhonePemandu||'').trim();
@@ -880,7 +880,7 @@
       for(var i=0;i<btns.length;i++) btns[i].disabled=true;
       try {
         var res = await apiPost('approveBooking', { id: id, pemandu: pemandu, kenderaan: kenderaan, noPhonePemandu: noPhonePemandu, pin: ADMIN_PIN_VALUE });
-        if(res.ok){ showToast('Diluluskan! Pemandu: '+pemandu,false); loadPending(); loadHistory(); loadDriverStatus(); }
+        if(res.ok){ showToast('Diluluskan! PKA: '+pemandu,false); loadPending(); loadHistory(); loadDriverStatus(); }
         else{ showToast(res.message,true); for(var i2=0;i2<btns.length;i2++) btns[i2].disabled=false; }
       } catch(err){
         showToast('Ralat: '+err.message,true);
@@ -984,7 +984,7 @@
         html+='<div class="hist-card-row"><b>Bahagian</b>'+escapeHtml(b.bahagian)+(b.unit&&b.unit!=='-'?' &middot; '+escapeHtml(b.unit):'')+'</div>';
         html+='<div class="hist-card-row"><b>Tarikh</b>'+escapeHtml(b.tarikhMula)+' &rarr; '+escapeHtml(b.tarikhKembali)+' &middot; '+escapeHtml(b.masaMula)+'</div>';
         html+='<div class="hist-card-row"><b>Destinasi</b>'+escapeHtml(b.destinasi)+'</div>';
-        html+='<div class="hist-card-row"><b>Pemandu</b>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+
+        html+='<div class="hist-card-row"><b>PKA</b>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+
               (b.kenderaan&&b.kenderaan!=='-'?' &middot; '+escapeHtml(b.kenderaan):'')+'</div>';
         if(b.catatanAdmin){
           html+='<div class="hist-card-note">'+escapeHtml(b.catatanAdmin)+'</div>';
