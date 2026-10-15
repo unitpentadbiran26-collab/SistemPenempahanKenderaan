@@ -496,6 +496,7 @@
           html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
           html += '<div class="dic-row"><b>Tarikh</b>' + (trip.tarikhMula||'-') + ' &rarr; ' + (trip.tarikhKembali||'-') + '</div>';
           html += '<div class="dic-row"><b>No. Kenderaan</b>' + (trip.kenderaan||'-') + '</div>';
+          if (trip.jenisKenderaan){ html += '<div class="dic-row"><b>Jenis Kenderaan</b>' + trip.jenisKenderaan + '</div>'; }
           html += '<div class="dic-row"><b>Nama/Unit</b>' + (trip.nama||'-') + (trip.unit && trip.unit!=='-' ? ' &middot; '+trip.unit : '') + '</div>';
           html += '<div class="dic-row"><b>Bahagian</b>' + (trip.bahagian||'-') + '</div>';
           html += '<div class="dic-row"><b>Tujuan</b>' + (trip.tujuan||'-') + '</div>';
@@ -543,6 +544,7 @@
             html += '<div class="sched-row"><b>Destinasi</b>' + r.destinasi + '</div>';
             html += '<div class="sched-row"><b>Tujuan</b>' + r.tujuan + '</div>';
             html += '<div class="sched-row"><b>No. Kenderaan</b>' + (r.kenderaan||'-') + '</div>';
+            if (r.jenisKenderaan){ html += '<div class="sched-row"><b>Jenis Kenderaan</b>' + r.jenisKenderaan + '</div>'; }
             html += '<div class="sched-row"><b>Nama/Unit</b>' + (r.nama||'-') + (r.unit && r.unit!=='-' ? ' &middot; '+r.unit : '') + '</div>';
             html += '<div class="sched-row"><b>Bahagian</b>' + (r.bahagian||'-') + '</div>';
             if (r.noPhonePemandu){ html += '<div class="sched-row"><b>No. Phone PKA</b>' + r.noPhonePemandu + '</div>'; }
