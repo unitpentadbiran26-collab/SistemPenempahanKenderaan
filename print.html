@@ -126,6 +126,7 @@
       }
 
       const kenderaan = (view.kenderaan && view.kenderaan !== '-') ? view.kenderaan : '';
+      const jenisKenderaan = view.jenisKenderaan || '';
       const pemandu = (view.pemandu && view.pemandu !== '-') ? view.pemandu : '';
       const catatan = (view.catatanAdmin && view.catatanAdmin !== '-') ? view.catatanAdmin : '&nbsp;';
 
@@ -242,6 +243,10 @@
               <div class="p-field">
                 <div class="p-label">No. Kenderaan</div>
                 <div class="p-value">${escapeHtml(kenderaan)}</div>
+              </div>
+              <div class="p-field">
+                <div class="p-label">Jenis Kenderaan</div>
+                <div class="p-value">${escapeHtml(jenisKenderaan)}</div>
               </div>
               <div class="p-field">
                 <div class="p-label">Nama PKA</div>
