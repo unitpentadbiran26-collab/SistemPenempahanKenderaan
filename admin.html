@@ -344,7 +344,27 @@
     // ====================== KONFIGURASI - WAJIB TUKAR ======================
     const API_URL = 'https://script.google.com/macros/s/AKfycbynLau1pPfiNXX0K-ISdLdeAaVzmhpamH7sMYZGReiXP9kXP6vEJ58-HXTrEzjGN8wM/exec';
     const DRIVERS = ['Ag. Ibrahim','Azrin','Suhairey Jafar','Bryan Pius','Mohd Shaiful','Mohd Ikhmal','Mohd Khairul'];
-    const KENDERAAN = ['SJC 7806','SWG 6645','SB 7595 D','SAB 6589 V','SAB 1489 M','SB 9465 A'];
+    const KENDERAAN = [
+      { no: 'SJC 7806',   jenis: 'TOYOTA HILUX' },
+      { no: 'SJD 4786',   jenis: 'FORTUNER' },
+      { no: 'SJG 9967',   jenis: 'FORTUNER' },
+      { no: 'SWG 6645',   jenis: 'ISUZU (D-MAX)' },
+      { no: 'SB 7595 D',  jenis: 'TOYOTA HILUX' },
+      { no: 'SYB 9522',   jenis: 'TOYOTA HILUX' },
+      { no: 'SAB 1489 M', jenis: 'TOYOTA HILUX' },
+      { no: 'SAB 667 U',  jenis: 'TOYOTA HILUX' },
+      { no: 'SAB 6589 V', jenis: 'TOYOTA HILUX' },
+      { no: 'SAB 1635 N', jenis: 'TOYOTA HILUX' },
+      { no: 'SAB 597 E',  jenis: 'TOYOTA HILUX' },
+      { no: 'SB 1776 B',  jenis: 'FORTUNER' },
+      { no: 'SB 9465 A',  jenis: 'TOYOTA HILUX' },
+      { no: 'SAA 6222 L', jenis: 'TOYOTA PRADO' }
+    ];
+    // Paparan "No. Kenderaan (Jenis)" untuk jadual/kad
+    function kenderaanLabel(no, jenis){
+      if (!no || no === '-') return '';
+      return escapeHtml(no) + (jenis ? ' <span style="color:var(--ink-dim);">('+escapeHtml(jenis)+')</span>' : '');
+    }
     const BAHAGIAN_OPTIONS = ['Pejabat Pengurus Besar','Khidmat Pengurusan','Perancangan dan Pembangunan Strategik','Pembangunan Nelayan','Pembangunan Industri Perikanan'];
     const UNIT_GROUPS = {
       'Pejabat Pengurus Besar': ['Unit Pengurusan Petroleum','Unit Audit Dalam','Unit Pemasaran','Unit Perundangan dan Penguatkuasaan','Unit Komunikasi Korporat','Unit Kejuruteraan'],
@@ -605,7 +625,7 @@
         DRIVERS.map(function(d){ return '<option value="'+d+'">'+d+'</option>'; }).join('');
       var scK = document.getElementById('sc_kenderaan');
       scK.innerHTML = '<option value="">-- Pilih Kenderaan --</option>' +
-        KENDERAAN.map(function(k){ return '<option value="'+k+'">'+k+'</option>'; }).join('');
+        KENDERAAN.map(function(k){ return '<option value="'+k.no+'">'+k.no+' \u2014 '+k.jenis+'</option>'; }).join('');
       var scB = document.getElementById('sc_bahagian');
       scB.innerHTML = '<option value="">-- Pilih Bahagian --</option>' +
         BAHAGIAN_OPTIONS.map(function(b){ return '<option value="'+b+'">'+b+'</option>'; }).join('');
@@ -837,10 +857,10 @@
           html+='<option value="'+escapeHtml(DRIVERS[j])+'">'+escapeHtml(DRIVERS[j])+'</option>';
         }
         html+='</select>';
-        html+='<select class="kenderaan-input" id="kenderaan-'+escapeHtml(b.id)+'" style="width:140px;">';
+        html+='<select class="kenderaan-input" id="kenderaan-'+escapeHtml(b.id)+'" style="width:230px;">';
         html+='<option value="">-- No. Kenderaan --</option>';
         for(var k=0;k<KENDERAAN.length;k++){
-          html+='<option value="'+escapeHtml(KENDERAAN[k])+'">'+escapeHtml(KENDERAAN[k])+'</option>';
+          html+='<option value="'+escapeHtml(KENDERAAN[k].no)+'">'+escapeHtml(KENDERAAN[k].no)+' \u2014 '+escapeHtml(KENDERAAN[k].jenis)+'</option>';
         }
         html+='</select>';
         html+='<input type="tel" class="kenderaan-input" id="phone-'+escapeHtml(b.id)+'" placeholder="No. Phone PKA (pilihan)" style="width:170px;">';
@@ -941,7 +961,7 @@
         html+='<td>'+escapeHtml(b.masaMula)+'</td>';
         html+='<td>'+escapeHtml(b.destinasi)+'</td>';
         html+='<td>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+'</td>';
-        html+='<td>'+(b.kenderaan&&b.kenderaan!=='-'?escapeHtml(b.kenderaan):'<span style="color:var(--ink-dim);">-</span>')+'</td>';
+        html+='<td>'+(b.kenderaan&&b.kenderaan!=='-'?kenderaanLabel(b.kenderaan,b.jenisKenderaan):'<span style="color:var(--ink-dim);">-</span>')+'</td>';
         html+='<td><span class="badge badge-'+b.status+'">'+escapeHtml(b.status)+'</span></td>';
         html+='<td>'+escapeHtml(b.catatanAdmin)+'</td>';
         html+='<td><a class="btn btn-ghost btn-sm" href="print.html?id='+encodeURIComponent(b.id)+'">Cetak</a></td>';
@@ -985,7 +1005,7 @@
         html+='<div class="hist-card-row"><b>Tarikh</b>'+escapeHtml(b.tarikhMula)+' &rarr; '+escapeHtml(b.tarikhKembali)+' &middot; '+escapeHtml(b.masaMula)+'</div>';
         html+='<div class="hist-card-row"><b>Destinasi</b>'+escapeHtml(b.destinasi)+'</div>';
         html+='<div class="hist-card-row"><b>PKA</b>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+
-              (b.kenderaan&&b.kenderaan!=='-'?' &middot; '+escapeHtml(b.kenderaan):'')+'</div>';
+              (b.kenderaan&&b.kenderaan!=='-'?' &middot; '+kenderaanLabel(b.kenderaan,b.jenisKenderaan):'')+'</div>';
         if(b.catatanAdmin){
           html+='<div class="hist-card-note">'+escapeHtml(b.catatanAdmin)+'</div>';
         }
