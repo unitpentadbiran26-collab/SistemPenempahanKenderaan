@@ -261,9 +261,9 @@
           <div class="card history-table-wrap" style="overflow-x:auto;">
             <table>
               <thead>
-                <tr><th>Pemohon</th><th>Bahagian</th><th>Tarikh Mula</th><th>Tarikh Kembali</th><th>Masa</th><th>Destinasi</th><th>PKA</th><th>No. Kenderaan</th><th>Status</th><th>Catatan</th><th>Cetak</th><th>Tindakan</th></tr>
+                <tr><th>Pemohon</th><th>Bahagian</th><th>Tarikh Mula</th><th>Tarikh Kembali</th><th>Masa</th><th>Destinasi</th><th>Bil. Orang</th><th>PKA</th><th>No. Kenderaan</th><th>Status</th><th>Catatan</th><th>Cetak</th><th>Tindakan</th></tr>
               </thead>
-              <tbody id="historyBody"><tr><td colspan="12" style="text-align:center;color:var(--ink-dim);padding:28px;">Memuatkan...</td></tr></tbody>
+              <tbody id="historyBody"><tr><td colspan="13" style="text-align:center;color:var(--ink-dim);padding:28px;">Memuatkan...</td></tr></tbody>
             </table>
           </div>
           <div class="history-cards" id="historyCards"></div>
@@ -296,6 +296,7 @@
               <div class="field"><label>Masa Mula</label><input type="time" id="sc_masaMula"></div>
               <div class="field" id="sc_masaTamatWrap"><label>Masa Tamat <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(1 hari sahaja)</span></label><input type="time" id="sc_masaTamat"></div>
             </div>
+            <div class="field"><label>Bilangan Orang <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><input type="number" id="sc_bilangan" min="1" step="1" inputmode="numeric"></div>
             <div class="field"><label>Destinasi</label><input type="text" id="sc_destinasi" placeholder="Contoh: Kota Kinabalu"></div>
             <div class="field"><label>Tujuan</label><input type="text" id="sc_tujuan" placeholder="Contoh: Hantar dokumen ke Ibu Pejabat"></div>
             <div class="field-row">
@@ -729,6 +730,7 @@
       var tarikhKembali = document.getElementById('sc_tarikhKembali').value;
       var masaMula = document.getElementById('sc_masaMula').value;
       var masaTamat = document.getElementById('sc_masaTamat').disabled ? '' : document.getElementById('sc_masaTamat').value;
+      var bilanganOrang = document.getElementById('sc_bilangan').value.trim();
       var destinasi = document.getElementById('sc_destinasi').value.trim();
       var tujuan = document.getElementById('sc_tujuan').value.trim();
       var nama = document.getElementById('sc_nama').value.trim();
@@ -753,13 +755,13 @@
       try {
         var res = await apiPost('adminCreateBooking', {
           pemandu: pemandu, kenderaan: kenderaan, tarikhMula: tarikhMula, tarikhKembali: tarikhKembali,
-          masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan,
+          masaMula: masaMula, masaTamat: masaTamat, destinasi: destinasi, tujuan: tujuan, bilanganOrang: bilanganOrang,
           nama: nama, unit: unit, bahagian: bahagian, emel: emel, noPhonePemandu: noPhone, catatanAdmin: catatan, pin: ADMIN_PIN_VALUE
         });
         btn.disabled = false; btn.textContent = 'Jadualkan PKA';
         if (res.ok){
           showToast('Jadual PKA berjaya dicipta.', false);
-          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_destinasi','sc_tujuan','sc_nama','sc_unit','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
+          ['sc_pemandu','sc_kenderaan','sc_tarikhMula','sc_tarikhKembali','sc_masaMula','sc_masaTamat','sc_bilangan','sc_destinasi','sc_tujuan','sc_nama','sc_unit','sc_bahagian','sc_emel','sc_noPhone','sc_catatan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
           populateUnitSelect(document.getElementById('sc_unit'), '');
@@ -850,6 +852,7 @@
         html+='</div>';
         html+='<div class="pending-info"><strong>Destinasi:</strong> '+escapeHtml(b.destinasi)+'</div>';
         html+='<div class="pending-info" style="margin-top:6px;"><strong>Tujuan:</strong> '+escapeHtml(b.tujuan)+'</div>';
+        html+='<div class="pending-info" style="margin-top:6px;"><strong>Bilangan Orang:</strong> '+escapeHtml(b.bilanganOrang||'-')+'</div>';
         html+='<div class="pending-actions">';
         html+='<select class="driver-select" id="driver-'+escapeHtml(b.id)+'">';
         html+='<option value="">-- Pilih PKA --</option>';
@@ -932,7 +935,7 @@
       var tbody=document.getElementById('historyBody');
       var pagBar=document.getElementById('paginationBar');
       if(!allRows.length){
-        tbody.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--ink-dim);padding:28px;">Tiada rekod.</td></tr>';
+        tbody.innerHTML='<tr><td colspan="13" style="text-align:center;color:var(--ink-dim);padding:28px;">Tiada rekod.</td></tr>';
         document.getElementById('historyCards').innerHTML='<div class="empty-state">Tiada rekod.</div>';
         pagBar.style.display='none';
         return;
@@ -960,6 +963,7 @@
         html+='<td>'+escapeHtml(b.tarikhKembali)+'</td>';
         html+='<td>'+escapeHtml(b.masaMula)+'</td>';
         html+='<td>'+escapeHtml(b.destinasi)+'</td>';
+        html+='<td>'+escapeHtml(b.bilanganOrang||'-')+'</td>';
         html+='<td>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+'</td>';
         html+='<td>'+(b.kenderaan&&b.kenderaan!=='-'?kenderaanLabel(b.kenderaan,b.jenisKenderaan):'<span style="color:var(--ink-dim);">-</span>')+'</td>';
         html+='<td><span class="badge badge-'+b.status+'">'+escapeHtml(b.status)+'</span></td>';
@@ -1004,6 +1008,7 @@
         html+='<div class="hist-card-row"><b>Bahagian</b>'+escapeHtml(b.bahagian)+(b.unit&&b.unit!=='-'?' &middot; '+escapeHtml(b.unit):'')+'</div>';
         html+='<div class="hist-card-row"><b>Tarikh</b>'+escapeHtml(b.tarikhMula)+' &rarr; '+escapeHtml(b.tarikhKembali)+' &middot; '+escapeHtml(b.masaMula)+'</div>';
         html+='<div class="hist-card-row"><b>Destinasi</b>'+escapeHtml(b.destinasi)+'</div>';
+        html+='<div class="hist-card-row"><b>Bil. Orang</b>'+escapeHtml(b.bilanganOrang||'-')+'</div>';
         html+='<div class="hist-card-row"><b>PKA</b>'+(b.pemandu&&b.pemandu!=='-'?escapeHtml(b.pemandu):'<span style="color:var(--ink-dim);">Belum ditugaskan</span>')+
               (b.kenderaan&&b.kenderaan!=='-'?' &middot; '+kenderaanLabel(b.kenderaan,b.jenisKenderaan):'')+'</div>';
         if(b.catatanAdmin){
