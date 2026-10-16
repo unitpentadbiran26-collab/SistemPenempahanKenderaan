@@ -724,7 +724,7 @@
           toggleMasaTamat();
           if (res.id){
             document.getElementById('printOverlayMsg').textContent = res.message;
-            document.getElementById('printOverlayLink').href = API_URL + '?page=print&id=' + encodeURIComponent(res.id);
+            document.getElementById('printOverlayLink').href = 'print.html?id=' + encodeURIComponent(res.id);
             document.getElementById('printOverlay').classList.add('open');
           }
         } else {
