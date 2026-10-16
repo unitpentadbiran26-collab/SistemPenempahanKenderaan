@@ -301,6 +301,7 @@
           <div class="field"><label>Bahagian</label><select id="f_bahagian" required><option value="">-- Pilih Bahagian --</option></select></div>
           <div class="field"><label>Unit <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label><select id="f_unit"><option value="">-- Pilih Bahagian dahulu --</option></select></div>
           <div class="field"><label>Emel</label><input type="email" id="f_emel" required></div>
+          <div class="field"><label>Bilangan Orang</label><input type="number" id="f_bilangan" min="1" step="1" inputmode="numeric" placeholder="Termasuk pemohon" required></div>
           <div class="field"><label>Destinasi Perjalanan</label><input type="text" id="f_destinasi" placeholder="Contoh: Kota Kinabalu" required></div>
           <div class="field"><label>Tujuan Perjalanan</label><textarea id="f_tujuan" placeholder="Huraikan tujuan perjalanan..." required></textarea></div>
           <div style="background:var(--mist-2);border:1px solid var(--mist);border-radius:8px;padding:10px 14px;margin-bottom:18px;font-size:12.5px;color:var(--ink-dim);">PKA akan ditugaskan oleh admin setelah permohonan diluluskan.</div>
@@ -494,6 +495,7 @@
           html += '<div class="dic-row"><b>Masa Mula</b>' + (trip.masaMula||'-') + '</div>';
           if (trip.masaTamat){ html += '<div class="dic-row"><b>Masa Tamat</b>' + trip.masaTamat + '</div>'; }
           html += '<div class="dic-row"><b>Destinasi</b>' + (trip.destinasi||'-') + '</div>';
+          if (trip.bilanganOrang){ html += '<div class="dic-row"><b>Bilangan Orang</b>' + trip.bilanganOrang + '</div>'; }
           html += '<div class="dic-row"><b>Tarikh</b>' + (trip.tarikhMula||'-') + ' &rarr; ' + (trip.tarikhKembali||'-') + '</div>';
           html += '<div class="dic-row"><b>No. Kenderaan</b>' + (trip.kenderaan||'-') + '</div>';
           if (trip.jenisKenderaan){ html += '<div class="dic-row"><b>Jenis Kenderaan</b>' + trip.jenisKenderaan + '</div>'; }
@@ -542,6 +544,7 @@
             html += '<div class="sched-row"><b>Tarikh</b>' + r.tarikhMula + ' &rarr; ' + r.tarikhKembali + '</div>';
             html += '<div class="sched-row"><b>Masa Mula</b>' + r.masaMula + '</div>';
             html += '<div class="sched-row"><b>Destinasi</b>' + r.destinasi + '</div>';
+            if (r.bilanganOrang){ html += '<div class="sched-row"><b>Bilangan Orang</b>' + r.bilanganOrang + '</div>'; }
             html += '<div class="sched-row"><b>Tujuan</b>' + r.tujuan + '</div>';
             html += '<div class="sched-row"><b>No. Kenderaan</b>' + (r.kenderaan||'-') + '</div>';
             if (r.jenisKenderaan){ html += '<div class="sched-row"><b>Jenis Kenderaan</b>' + r.jenisKenderaan + '</div>'; }
@@ -694,6 +697,7 @@
       var bahagian = document.getElementById('f_bahagian').value;
       var unit = document.getElementById('f_unit').value.trim();
       var emel = document.getElementById('f_emel').value.trim();
+      var bilanganOrang = parseInt(document.getElementById('f_bilangan').value, 10);
       var destinasi = document.getElementById('f_destinasi').value.trim();
       var tujuan = document.getElementById('f_tujuan').value.trim();
 
@@ -705,19 +709,20 @@
       if (!nama){ errBox.textContent='Sila isi Nama Pemohon.'; errBox.classList.add('show'); return; }
       if (!bahagian){ errBox.textContent='Sila pilih Bahagian.'; errBox.classList.add('show'); return; }
       if (!emel){ errBox.textContent='Sila isi Emel.'; errBox.classList.add('show'); return; }
+      if (!bilanganOrang || bilanganOrang < 1){ errBox.textContent='Sila isi Bilangan Orang (sekurang-kurangnya 1).'; errBox.classList.add('show'); return; }
       if (!destinasi){ errBox.textContent='Sila isi Destinasi Perjalanan.'; errBox.classList.add('show'); return; }
       if (!tujuan){ errBox.textContent='Sila isi Tujuan Perjalanan.'; errBox.classList.add('show'); return; }
 
       var btn = this;
       btn.disabled = true; btn.textContent = 'Menghantar...';
       try {
-        var res = await apiPost('submitBooking', { tarikhMula:tarikhMula, tarikhKembali:tarikhKembali, masaMula:masaMula, masaTamat:masaTamat, nama:nama, bahagian:bahagian, unit:unit||'-', emel:emel, destinasi:destinasi, tujuan:tujuan });
+        var res = await apiPost('submitBooking', { tarikhMula:tarikhMula, tarikhKembali:tarikhKembali, masaMula:masaMula, masaTamat:masaTamat, nama:nama, bahagian:bahagian, unit:unit||'-', emel:emel, bilanganOrang:bilanganOrang, destinasi:destinasi, tujuan:tujuan });
         btn.disabled = false; btn.textContent = 'Hantar Permohonan';
         if (res.ok){
           showToast(res.message, false);
           showPage('jadual');
           loadDate(currentDate);
-          ['f_tarikhMula','f_tarikhKembali','f_masaMula','f_masaTamat','f_nama','f_bahagian','f_unit','f_destinasi','f_tujuan'].forEach(function(id){
+          ['f_tarikhMula','f_tarikhKembali','f_masaMula','f_masaTamat','f_nama','f_bahagian','f_unit','f_bilangan','f_destinasi','f_tujuan'].forEach(function(id){
             document.getElementById(id).value = '';
           });
           populateUnitSelect(document.getElementById('f_unit'), '');
