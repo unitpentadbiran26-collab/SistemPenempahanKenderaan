@@ -171,7 +171,16 @@
     .history-cards{display:flex;}
   }
   svg{color:#fff;}
-  </style>
+    .cdlg-overlay{position:fixed;inset:0;background:rgba(10,10,30,.8);display:none;align-items:center;justify-content:center;z-index:400;padding:20px;}
+  .cdlg-overlay.open{display:flex;}
+  .cdlg{background:var(--paper);border:1px solid var(--mist);border-radius:14px;max-width:420px;width:100%;padding:22px 22px 20px;box-shadow:0 32px 80px rgba(0,0,0,.7);}
+  .cdlg h3{font-size:16px;color:var(--gold);margin-bottom:6px;}
+  .cdlg p{font-size:13px;color:var(--ink-dim);margin-bottom:12px;}
+  .cdlg textarea{width:100%;min-height:80px;border:1px solid var(--mist);border-radius:8px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);background:var(--mist-2);resize:vertical;}
+  .cdlg textarea:focus{outline:none;border-color:var(--gold);}
+  .cdlg-actions{display:flex;gap:10px;margin-top:14px;}
+  .cdlg-actions .btn{flex:1;min-height:42px;}
+</style>
 </head>
 <body>
 
@@ -981,10 +990,8 @@
       var cancelBtns=tbody.querySelectorAll('.cancel-btn');
       for(var k=0;k<cancelBtns.length;k++){
         cancelBtns[k].addEventListener('click',function(){
-          var id=this.getAttribute('data-id');
-          var reason=prompt('Sebab pembatalan (pilihan) \u2014 cth: Pemohon batalkan sendiri:');
-          if(reason===null) return;
-          cancelBookingRow(id,reason,this);
+          var id=this.getAttribute('data-id'), btn=this;
+          bukaDialogBatal(id, function(reason){ cancelBookingRow(id,reason,btn); });
         });
       }
 
@@ -1027,10 +1034,8 @@
       var cancelBtns=el.querySelectorAll('.hist-cancel-btn');
       for(var k=0;k<cancelBtns.length;k++){
         cancelBtns[k].addEventListener('click',function(){
-          var id=this.getAttribute('data-id');
-          var reason=prompt('Sebab pembatalan (pilihan) \u2014 cth: Pemohon batalkan sendiri:');
-          if(reason===null) return;
-          cancelBookingRow(id,reason,this);
+          var id=this.getAttribute('data-id'), btn=this;
+          bukaDialogBatal(id, function(reason){ cancelBookingRow(id,reason,btn); });
         });
       }
     }
@@ -1056,6 +1061,36 @@
     document.getElementById('pageNext').addEventListener('click',function(){
       historyPage++; renderHistory();
     });
+  </script>
+  <!-- Dialog pembatalan (ganti prompt() yang tidak berfungsi dalam apps Android/WebView) -->
+  <div class="cdlg-overlay" id="cancelDlg">
+    <div class="cdlg" role="dialog" aria-modal="true" aria-labelledby="cancelDlgTitle">
+      <h3 id="cancelDlgTitle">Batalkan Tempahan</h3>
+      <p id="cancelDlgInfo"></p>
+      <label for="cancelDlgReason" style="display:block;font-size:11px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;">Sebab pembatalan <span style="text-transform:none;font-weight:400;color:var(--ink-dim);">(pilihan)</span></label>
+      <textarea id="cancelDlgReason" placeholder="Contoh: Pemohon batalkan sendiri"></textarea>
+      <div class="cdlg-actions">
+        <button class="btn btn-danger" id="cancelDlgOk">Ya, Batalkan</button>
+        <button class="btn" id="cancelDlgNo">Tidak</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Buka dialog pembatalan; panggil cb(sebab) jika admin sahkan.
+    (function(){
+      var dlg=document.getElementById('cancelDlg'), txt=document.getElementById('cancelDlgReason'), cb=null;
+      window.bukaDialogBatal=function(id, callback){
+        cb=callback; txt.value='';
+        document.getElementById('cancelDlgInfo').textContent='No. rujukan: '+id+'. PKA akan jadi available semula dan emel dihantar kepada pemohon.';
+        dlg.classList.add('open'); setTimeout(function(){ txt.focus(); },50);
+      };
+      function tutup(){ dlg.classList.remove('open'); cb=null; }
+      document.getElementById('cancelDlgNo').addEventListener('click', tutup);
+      dlg.addEventListener('click', function(e){ if(e.target===dlg) tutup(); });
+      document.getElementById('cancelDlgOk').addEventListener('click', function(){
+        var f=cb, sebab=txt.value.trim(); tutup(); if(f) f(sebab);
+      });
+    })();
   </script>
 </body>
 </html>
