@@ -399,12 +399,12 @@
     function toMin(t){ var p=String(t).split(':'); return parseInt(p[0])*60+parseInt(p[1]); }
 
     function showPage(page) {
-      document.getElementById('page-jadual').style.display = page==='jadual' ? 'block' : 'none';
-      document.getElementById('page-mohon').style.display = page==='mohon' ? 'block' : 'none';
-      document.getElementById('sb-jadual').className = 'sidebar-item' + (page==='jadual' ? ' active' : '');
-      document.getElementById('sb-mohon').className = 'sidebar-item' + (page==='mohon' ? ' active' : '');
-      document.getElementById('nav-jadual').className = page==='jadual' ? 'active' : '';
-      document.getElementById('nav-mohon').className = page==='mohon' ? 'active' : '';
+      ['jadual','mohon'].forEach(function(p){
+        document.getElementById('page-'+p).style.display = page===p ? 'block' : 'none';
+        document.getElementById('sb-'+p).className = 'sidebar-item' + (page===p ? ' active' : '');
+        document.getElementById('nav-'+p).className = page===p ? 'active' : '';
+      });
+      window.scrollTo(0,0);
     }
     document.getElementById('sb-jadual').addEventListener('click', function(){ showPage('jadual'); closeDrawer(); });
     document.getElementById('sb-mohon').addEventListener('click', function(){ showPage('mohon'); closeDrawer(); });
@@ -751,6 +751,7 @@
     document.getElementById('printOverlayClose').addEventListener('click', function(){
       document.getElementById('printOverlay').classList.remove('open');
     });
+
 
     initStaticLists();
     loadDate(fmtDate(new Date()));
