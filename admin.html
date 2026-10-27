@@ -170,6 +170,39 @@
     .history-table-wrap{display:none;}
     .history-cards{display:flex;}
   }
+  .main-content{min-width:0;}
+  #page-sejarah,.sj-card{min-width:0;max-width:100%;}
+  .sj-controls{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+  .sj-controls .field{margin:0;min-width:160px;}
+  .stat-value.sj-sm{font-size:17px;line-height:1.3;}
+  .sj-card{padding:18px 20px;margin-bottom:18px;}
+  .sj-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+  .sj-head h3{font-size:15px;}
+  .sj-hint{font-size:11.5px;color:var(--ink-dim);}
+  .sj-note{font-size:11.5px;color:var(--ink-dim);margin-top:10px;}
+  .sj-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  .sj-tbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+  .sj-tbl th{font-size:10.5px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.05em;padding:8px 6px;border-bottom:1px solid var(--mist);text-align:center;white-space:nowrap;background:var(--paper-2);}
+  .sj-tbl th:first-child,.sj-tbl td:first-child{text-align:left;position:sticky;left:0;background:var(--paper);z-index:1;min-width:120px;padding-left:10px;}
+  .sj-tbl th:first-child{background:var(--paper-2);}
+  .sj-tbl td{padding:7px 6px;border-bottom:1px solid var(--mist);text-align:center;color:var(--ink);}
+  .sj-tbl tr.sj-total td{font-weight:700;color:var(--gold);border-top:1px solid var(--gold-dark);}
+  .sj-tbl td.sj-sum{font-weight:700;color:var(--gold);}
+  .sj-cell{display:inline-block;min-width:30px;padding:4px 6px;border-radius:6px;cursor:pointer;border:1px solid transparent;font-weight:600;font-family:inherit;font-size:12.5px;color:var(--ink);background:none;}
+  .sj-cell:hover{border-color:var(--gold);}
+  .sj-cell.zero{color:#56607a;cursor:default;font-weight:400;}
+  .sj-cell.zero:hover{border-color:transparent;}
+  .sj-cell.on{outline:2px solid var(--gold);outline-offset:1px;}
+  .sj-list td{text-align:left;white-space:nowrap;}
+  .sj-list th{text-align:left;}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);}
+  @media(max-width:768px){ .sj-card{padding:12px !important;} .sj-tbl{font-size:11.5px;} .sj-controls .field{flex:1;min-width:130px;} }
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+  .stat-card{background:var(--paper);border:1px solid var(--mist);border-radius:var(--radius);padding:16px 18px;}
+  .stat-label{font-size:11px;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  .stat-value{font-size:24px;font-weight:700;font-family:'Space Grotesk',sans-serif;color:var(--gold);}
+  .stat-sub{font-size:11.5px;color:var(--ink-dim);margin-top:4px;}
+  @media(max-width:768px){ .stat-grid{grid-template-columns:repeat(3,1fr);gap:6px;} .stat-card{padding:10px 8px;} .stat-label{font-size:8.5px;} .stat-value{font-size:18px;} .stat-value.sj-sm{font-size:12.5px;} .stat-sub{font-size:9px;} }
   svg{color:#fff;}
     .cdlg-overlay{position:fixed;inset:0;background:rgba(10,10,30,.8);display:none;align-items:center;justify-content:center;z-index:400;padding:20px;}
   .cdlg-overlay.open{display:flex;}
@@ -217,6 +250,7 @@
         <a href="#" class="active" id="nav-pending">Menunggu Kelulusan</a>
         <a href="#" id="nav-semua">Semua Permohonan</a>
         <a href="#" id="nav-pemandu">Uruskan PKA</a>
+        <a href="#" id="nav-sejarah">Sejarah PKA</a>
       </nav>
       <div class="topbar-right">
         <button class="btn-admin" id="notifBtn" style="background:var(--paper-2);color:var(--ink-dim);border:1px solid var(--mist);" title="Status notifikasi">&#128276; <span id="notifBtnLabel">Notifikasi</span></button>
@@ -241,6 +275,10 @@
           <button class="sidebar-item" id="sb-pemandu">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="7" r="4" stroke="currentColor" stroke-width="1.8"/></svg>
             Uruskan PKA
+          </button>
+          <button class="sidebar-item" id="sb-sejarah">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Sejarah PKA
           </button>
         </div>
         <div class="sidebar-section">
@@ -344,6 +382,38 @@
           <div class="page-header" style="margin-bottom:14px;"><h2 style="font-size:16px;">Tempoh Tidak Available Semasa/Akan Datang</h2></div>
           <div id="unavailList"><div class="empty-state">Memuatkan...</div></div>
         </div>
+      <div id="page-sejarah" style="display:none;">
+        <div class="page-header"><h2>Sejarah PKA</h2><p>Rekod kekerapan PKA mengikut minggu, bulan dan tahun (admin sahaja). Dikira dari perjalanan yang diluluskan, ikut tarikh mula.</p></div>
+
+        <div class="sj-controls">
+          <div class="field"><label for="sjTahun">Tahun</label><select id="sjTahun"></select></div>
+          <div class="field"><label for="sjPka">PKA</label><select id="sjPka"><option value="">Semua PKA</option></select></div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Jumlah Perjalanan</div><div class="stat-value" id="sjJumlah">-</div><div class="stat-sub" id="sjJumlahSub">tahun ini</div></div>
+          <div class="stat-card"><div class="stat-label">Paling Kerap</div><div class="stat-value sj-sm" id="sjTop">-</div><div class="stat-sub" id="sjTopSub"></div></div>
+          <div class="stat-card"><div class="stat-label">Bulan Paling Sibuk</div><div class="stat-value sj-sm" id="sjBulanTop">-</div><div class="stat-sub" id="sjBulanTopSub"></div></div>
+        </div>
+
+        <div class="card sj-card">
+          <div class="sj-head"><h3>Bulanan &middot; <span id="sjTahunLabel"></span></h3><span class="sj-hint">Klik nombor untuk lihat butiran</span></div>
+          <div class="sj-scroll"><table class="sj-tbl" id="sjBulanan"></table></div>
+        </div>
+
+        <div class="card sj-card">
+          <div class="sj-head"><h3>Mingguan</h3>
+            <div class="field" style="margin:0;min-width:150px;"><label for="sjBulan" class="sr-only">Bulan</label><select id="sjBulan"></select></div>
+          </div>
+          <div class="sj-scroll"><table class="sj-tbl" id="sjMingguan"></table></div>
+          <div class="sj-note">Minggu bermula Isnin. Perjalanan dikira pada minggu tarikh mulanya.</div>
+        </div>
+
+        <div class="card sj-card">
+          <div class="sj-head"><h3>Senarai Perjalanan</h3><span class="sj-hint" id="sjSenaraiLabel"></span></div>
+          <div class="sj-scroll"><table class="sj-tbl sj-list" id="sjSenarai"></table></div>
+        </div>
+      </div>
       </main>
     </div>
   </div>
@@ -615,7 +685,11 @@
       document.getElementById('nav-pending').className=page==='pending'?'active':'';
       document.getElementById('nav-semua').className=page==='semua'?'active':'';
       document.getElementById('nav-pemandu').className=page==='pemandu'?'active':'';
+      document.getElementById('page-sejarah').style.display = page==='sejarah'?'block':'none';
+      document.getElementById('sb-sejarah').className='sidebar-item'+(page==='sejarah'?' active':'');
+      document.getElementById('nav-sejarah').className=page==='sejarah'?'active':'';
       if (page==='pemandu') loadUnavailList();
+      if (page==='sejarah' && !sj.dimuat) sjMuat();
     }
     document.getElementById('sb-pending').addEventListener('click',function(){ showAdminPage('pending'); closeDrawer(); });
     document.getElementById('sb-semua').addEventListener('click',function(){ showAdminPage('semua'); closeDrawer(); });
@@ -623,6 +697,124 @@
     document.getElementById('nav-pending').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pending'); });
     document.getElementById('nav-semua').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('semua'); });
     document.getElementById('nav-pemandu').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('pemandu'); });
+    document.getElementById('sb-sejarah').addEventListener('click',function(){ showAdminPage('sejarah'); closeDrawer(); });
+    document.getElementById('nav-sejarah').addEventListener('click',function(e){ e.preventDefault(); showAdminPage('sejarah'); });
+
+    // ====================== SEJARAH PKA ======================
+    var BULAN = ['Jan','Feb','Mac','Apr','Mei','Jun','Jul','Ogo','Sep','Okt','Nov','Dis'];
+    var BULAN_PENUH = ['Januari','Februari','Mac','April','Mei','Jun','Julai','Ogos','September','Oktober','November','Disember'];
+    var sj = { data: null, pilihPka: '', pilihBulan: -1, dimuat: false };
+
+    function sjEsc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+    function sjBulanDari(t){ return parseInt(String(t).substring(5,7),10) - 1; }
+    function sjHariDari(t){ return parseInt(String(t).substring(8,10),10); }
+    // Warna sel ikut nilai (lebih kerap = lebih pekat)
+    function sjWarna(n, maks){ if(!n) return ''; var a = 0.12 + 0.55 * (n / Math.max(maks,1)); return 'background:rgba(212,168,67,' + a.toFixed(2) + ');'; }
+
+    async function sjMuat(tahun){
+      document.getElementById('sjBulanan').innerHTML = '<tr><td style="padding:20px;color:var(--ink-dim);">Memuatkan...</td></tr>';
+      try {
+        sj.data = await apiGet('getDriverHistory', tahun ? { tahun: tahun, pin: ADMIN_PIN_VALUE } : { pin: ADMIN_PIN_VALUE });
+        var selT = document.getElementById('sjTahun');
+        selT.innerHTML = sj.data.senaraiTahun.map(function(y){ return '<option value="'+y+'"'+(y===sj.data.tahun?' selected':'')+'>'+y+'</option>'; }).join('');
+        var selP = document.getElementById('sjPka');
+        selP.innerHTML = '<option value="">Semua PKA</option>' + sj.data.pka.map(function(p){ return '<option value="'+sjEsc(p)+'"'+(p===sj.pilihPka?' selected':'')+'>'+sjEsc(p)+'</option>'; }).join('');
+        if (sj.pilihPka && sj.data.pka.indexOf(sj.pilihPka) === -1) sj.pilihPka = '';
+        if (sj.pilihBulan < 0) {
+          var kini = new Date();
+          sj.pilihBulan = sj.data.tahun === kini.getFullYear() ? kini.getMonth() : 0;
+        }
+        sj.dimuat = true;
+        sjLukis();
+      } catch (err) {
+        document.getElementById('sjBulanan').innerHTML = '<tr><td style="padding:20px;color:var(--coral);">Gagal memuatkan: '+sjEsc(err.message)+'</td></tr>';
+      }
+    }
+
+    function sjLukis(){
+      var d = sj.data, trips = d.perjalanan;
+      var pkaList = sj.pilihPka ? [sj.pilihPka] : d.pka;
+      var tapis = trips.filter(function(t){ return !sj.pilihPka || t.pka === sj.pilihPka; });
+
+      // --- Ringkasan
+      document.getElementById('sjTahunLabel').textContent = d.tahun;
+      document.getElementById('sjJumlah').textContent = tapis.length;
+      document.getElementById('sjJumlahSub').textContent = 'perjalanan pada ' + d.tahun + (sj.pilihPka ? ' · ' + sj.pilihPka : '');
+      var ikutPka = {}; trips.forEach(function(t){ ikutPka[t.pka] = (ikutPka[t.pka]||0) + 1; });
+      var top = Object.keys(ikutPka).sort(function(a,b){ return ikutPka[b]-ikutPka[a]; })[0];
+      document.getElementById('sjTop').textContent = top || '-';
+      document.getElementById('sjTopSub').textContent = top ? ikutPka[top] + ' perjalanan' : 'Tiada data';
+      var ikutBulan = [0,0,0,0,0,0,0,0,0,0,0,0]; tapis.forEach(function(t){ ikutBulan[sjBulanDari(t.tarikhMula)]++; });
+      var bTop = ikutBulan.indexOf(Math.max.apply(null, ikutBulan));
+      document.getElementById('sjBulanTop').textContent = tapis.length ? BULAN_PENUH[bTop] : '-';
+      document.getElementById('sjBulanTopSub').textContent = tapis.length ? ikutBulan[bTop] + ' perjalanan' : 'Tiada data';
+
+      // --- Jadual bulanan
+      var grid = {}; pkaList.forEach(function(p){ grid[p] = [0,0,0,0,0,0,0,0,0,0,0,0]; });
+      tapis.forEach(function(t){ if (grid[t.pka]) grid[t.pka][sjBulanDari(t.tarikhMula)]++; });
+      var maks = 1; pkaList.forEach(function(p){ grid[p].forEach(function(n){ if(n>maks) maks=n; }); });
+      var h = '<thead><tr><th>PKA</th>' + BULAN.map(function(b){ return '<th>'+b+'</th>'; }).join('') + '<th>Jumlah</th></tr></thead><tbody>';
+      pkaList.forEach(function(p){
+        var jum = 0;
+        h += '<tr><td>'+sjEsc(p)+'</td>' + grid[p].map(function(n, m){
+          jum += n;
+          var on = (sj.pilihBulan === m && sj.pilihPka === p) ? ' on' : '';
+          return '<td><button type="button" class="sj-cell'+(n?'':' zero')+on+'" style="'+sjWarna(n,maks)+'" data-p="'+sjEsc(p)+'" data-m="'+m+'"'+(n?'':' disabled')+' aria-label="'+sjEsc(p)+', '+BULAN_PENUH[m]+': '+n+' perjalanan">'+n+'</button></td>';
+        }).join('') + '<td class="sj-sum">'+jum+'</td></tr>';
+      });
+      var tot = [0,0,0,0,0,0,0,0,0,0,0,0]; pkaList.forEach(function(p){ grid[p].forEach(function(n,m){ tot[m]+=n; }); });
+      h += '<tr class="sj-total"><td>Jumlah</td>' + tot.map(function(n){ return '<td>'+n+'</td>'; }).join('') + '<td>'+tot.reduce(function(a,b){return a+b;},0)+'</td></tr></tbody>';
+      document.getElementById('sjBulanan').innerHTML = h;
+      Array.prototype.forEach.call(document.querySelectorAll('#sjBulanan .sj-cell:not(.zero)'), function(btn){
+        btn.addEventListener('click', function(){
+          sj.pilihBulan = parseInt(this.getAttribute('data-m'),10);
+          sj.pilihPka = this.getAttribute('data-p');
+          document.getElementById('sjPka').value = sj.pilihPka;
+          sjLukis();
+          document.getElementById('sjMingguan').scrollIntoView({ behavior:'smooth', block:'center' });
+        });
+      });
+
+      // --- Mingguan (bulan dipilih)
+      var selB = document.getElementById('sjBulan');
+      selB.innerHTML = BULAN_PENUH.map(function(b,i){ return '<option value="'+i+'"'+(i===sj.pilihBulan?' selected':'')+'>'+b+' '+d.tahun+'</option>'; }).join('');
+      var m = sj.pilihBulan, hariBulan = new Date(d.tahun, m+1, 0).getDate();
+      var offset = (new Date(d.tahun, m, 1).getDay() + 6) % 7; // Isnin = 0
+      var bilMinggu = Math.ceil((offset + hariBulan) / 7), minggu = [];
+      for (var w = 0; w < bilMinggu; w++) {
+        var dari = Math.max(1, w*7 - offset + 1), hingga = Math.min(hariBulan, w*7 - offset + 7);
+        minggu.push(dari + (dari===hingga ? '' : '–' + hingga));
+      }
+      var wGrid = {}; pkaList.forEach(function(p){ wGrid[p] = minggu.map(function(){ return 0; }); });
+      tapis.forEach(function(t){
+        if (sjBulanDari(t.tarikhMula) !== m || !wGrid[t.pka]) return;
+        wGrid[t.pka][Math.floor((sjHariDari(t.tarikhMula) - 1 + offset) / 7)]++;
+      });
+      var wMaks = 1; pkaList.forEach(function(p){ wGrid[p].forEach(function(n){ if(n>wMaks) wMaks=n; }); });
+      var wh = '<thead><tr><th>PKA</th>' + minggu.map(function(r,i){ return '<th>Minggu '+(i+1)+'<br><span style="font-weight:500;text-transform:none;color:var(--ink-dim);">'+r+' '+BULAN[m]+'</span></th>'; }).join('') + '<th>Jumlah</th></tr></thead><tbody>';
+      pkaList.forEach(function(p){
+        var j = 0;
+        wh += '<tr><td>'+sjEsc(p)+'</td>' + wGrid[p].map(function(n){ j += n; return '<td><span class="sj-cell'+(n?'':' zero')+'" style="cursor:default;'+sjWarna(n,wMaks)+'">'+n+'</span></td>'; }).join('') + '<td class="sj-sum">'+j+'</td></tr>';
+      });
+      document.getElementById('sjMingguan').innerHTML = wh + '</tbody>';
+
+      // --- Senarai perjalanan (bulan dipilih)
+      var senarai = tapis.filter(function(t){ return sjBulanDari(t.tarikhMula) === m; });
+      document.getElementById('sjSenaraiLabel').textContent = BULAN_PENUH[m] + ' ' + d.tahun + (sj.pilihPka ? ' · ' + sj.pilihPka : '') + ' · ' + senarai.length + ' perjalanan';
+      document.getElementById('sjSenarai').innerHTML = !senarai.length
+        ? '<tr><td style="padding:18px;color:var(--ink-dim);">Tiada perjalanan pada bulan ini.</td></tr>'
+        : '<thead><tr><th>Tarikh</th><th>PKA</th><th>Kenderaan</th><th>Destinasi</th><th>Pemohon</th><th>Bahagian</th><th>Bil. Orang</th></tr></thead><tbody>' +
+          senarai.map(function(t){
+            return '<tr><td>'+sjEsc(t.tarikhMula)+(t.tarikhKembali && t.tarikhKembali!==t.tarikhMula ? ' &rarr; '+sjEsc(t.tarikhKembali) : '')+'<br><span style="color:var(--ink-dim);font-size:11px;">'+sjEsc(t.masaMula)+'</span></td>' +
+              '<td>'+sjEsc(t.pka)+'</td><td>'+sjEsc(t.kenderaan)+(t.jenisKenderaan?'<br><span style="color:var(--ink-dim);font-size:11px;">'+sjEsc(t.jenisKenderaan)+'</span>':'')+'</td>' +
+              '<td>'+sjEsc(t.destinasi)+'</td><td>'+sjEsc(t.nama)+'</td><td>'+sjEsc(t.bahagian)+'</td><td>'+sjEsc(t.bilanganOrang||'-')+'</td></tr>';
+          }).join('') + '</tbody>';
+    }
+
+    document.getElementById('sjTahun').addEventListener('change', function(){ sj.pilihBulan = -1; sjMuat(this.value); });
+    document.getElementById('sjPka').addEventListener('change', function(){ sj.pilihPka = this.value; if (sj.data) sjLukis(); });
+    document.getElementById('sjBulan').addEventListener('change', function(){ sj.pilihBulan = parseInt(this.value,10); if (sj.data) sjLukis(); });
+
 
     // ====================== URUSKAN PKA (TIDAK AVAILABLE MANUAL) ======================
     function initUnavailForm(){
